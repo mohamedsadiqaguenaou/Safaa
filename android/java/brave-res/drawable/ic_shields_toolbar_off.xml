@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 The Brave Authors. All rights reserved.
+     This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this file,
+     You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
+<!-- Shields are off: the shield of ic_shields_toolbar_on in the grey and
+     white of Brave's own "Shields off" icon (the monochrome Brave logo). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="#464649"
+        android:pathData="M11.26,2.16a1.83,1.83 0,0 1,1.49 0L19.16,5c0.67,0.3 1.1,0.95 1.1,1.68v4.3c0,5.1 -3.53,9.86 -8.26,11.01 -4.73,-1.16 -8.25,-5.91 -8.25,-11V6.69C3.75,5.96 4.17,5.3 4.84,5z" />
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,9.98A0.83,0.83 0,1 0,14.67 9l-3.16,4.29 -2.3,-1.94a0.83,0.83 0,1 0,-1.08 1.28l2.99,2.5a0.83,0.83 0,0 0,1.2 -0.14z" />
+</vector>

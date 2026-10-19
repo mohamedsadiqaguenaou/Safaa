@@ -1,0 +1,12 @@
+diff --git a/build/android/gyp/dex.py b/build/android/gyp/dex.py
+index c150609abbdd48ac91549e8e85e1de71fb501c96..8c89c6adcc66be129bc33811eed49bd1f8a47d35 100755
+--- a/build/android/gyp/dex.py
++++ b/build/android/gyp/dex.py
+@@ -24,6 +24,7 @@ import zip_helpers
+ _DEX_XMX = '3G'  # Increase this when __final_dex OOMs.
+ 
+ DEFAULT_IGNORE_WARNINGS = (
++    r'.Brave',
+     # Warning: Running R8 version main (build engineering), which cannot be
+     # represented as a semantic version. Using an artificial version newer than
+     # any known version for selecting Proguard configurations embedded under

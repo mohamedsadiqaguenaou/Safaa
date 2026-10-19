@@ -1,0 +1,4 @@
+include_rules = [
+  "+brave/components/nomusic/resources/grit",
+  "+brave/components/script_injector/common",
+]

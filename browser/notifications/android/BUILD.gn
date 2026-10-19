@@ -1,0 +1,21 @@
+# Copyright (c) 2022 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import("//build/config/android/rules.gni")
+
+assert(is_android)
+
+# TODO(samartnik): we are unable to avoid this patch since we directly patch
+# `ChromeChannelDefinitions.java`. There is no straightforward conversion of
+# those patches to bytecode patching so we need to find a way to
+# workaround those patches https://github.com/brave/brave-browser/issues/15867.
+android_library("brave_java") {
+  sources = [ "java/src/org/chromium/chrome/browser/notifications/channels/BraveChannelDefinitions.java" ]
+
+  deps = [
+    "//components/browser_ui/notifications/android:java",
+    "//third_party/androidx:androidx_annotation_annotation_java",
+  ]
+}

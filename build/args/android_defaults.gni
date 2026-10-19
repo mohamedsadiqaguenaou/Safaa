@@ -1,0 +1,29 @@
+# Copyright (c) 2025 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# This file contains defaults for gn values in Chromium which are always
+# overridden in Brave builds. This file in particular is only included in
+# builds for android
+
+safe_browsing_mode = 2
+
+# Fixes WebRTC IP leak with default option
+enable_mdns = true
+
+# We want it to be enabled for all configurations
+disable_android_lint = false
+
+# Features removed from this Android browser: Brave Wallet, Brave Rewards and
+# Brave Ads (including sponsored images and new tab takeovers), Brave News,
+# Leo AI and Brave VPN. Their Android UI is gone, and these keep their native
+# code out of the build too.
+enable_brave_wallet = false
+enable_brave_rewards = false
+enable_brave_ads = false
+enable_brave_news = false
+enable_ai_chat = false
+enable_brave_vpn_v1 = false
+enable_brave_vpn_v2 = false
+enable_web_discovery_native = false

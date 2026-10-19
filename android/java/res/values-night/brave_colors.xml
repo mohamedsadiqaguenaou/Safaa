@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2019 The Brave Authors. All rights reserved.
+     This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this file,
+     You can obtain one at https://mozilla.org/MPL/2.0/.
+-->
+<resources>
+    <color name="dialog_bg_color_dark_baseline">@color/default_bg_color_baseline</color>
+
+    <!-- Theme colors -->
+    <color name="brave_link">#70BA89</color>
+    <color name="brave_button_pressed">#575CA4</color>
+    <color name="menu_icon_color">#F0F2FF</color>
+    <color name="url_text_primary">#e3e3e8</color>
+
+    <color name="scan_qr_code_text_color">#F0F2FF</color>
+    <color name="scan_qr_code_bg_color">#1E2029</color>
+
+    <!-- Day/Night brave wallet colors -->
+
+    <!-- Brave wallet 2.0 colors -->
+
+    <color name="icon_interactive">@color/primitive_primary_80</color>
+    <color name="system_feedback_error">#FFB1B0</color>
+
+    <!-- Onboarding colors -->
+    <color name="onboarding_background_gradient_start">#FF122B1B</color>
+    <color name="onboarding_background_gradient_end">#FF101322</color>
+
+    <!-- Set Default Browser colors -->
+    <color name="set_default_bottom_sheet_bg_color">#1E2029</color>
+    <color name="set_default_text_color">#F0F2FF</color>
+
+    <color name="ad_free_card_cancel_color">#F0F2FF</color>
+    <color name="ad_free_card_bg_color">#1E2029</color>
+
+    <!-- Sync colors -->
+    <color name="brave_sync_bg_color">@android:color/transparent</color>
+    <color name="brave_sync_border_color">@color/primitive_neutral_20</color>
+    <color name="brave_sync_bg_secondary_color">#212529</color>
+
+    <color name="container_background">#1c1c1d</color>
+    <color name="divider_interactive">@color/primitive_primary_60</color>
+    <color name="systemfeedback_error_icon">#ff7f72</color>
+    <color name="systemfeedback_info_text">#78abff</color>
+    <color name="systemfeedback_info_icon">#78abff</color>
+    <color name="systemfeedback_info_background">#002058</color>
+
+    <color name="brave_set_default_dialog_text_color">@android:color/white</color>
+
+    <color name="shield_text_color">#F0F2FF</color>
+
+    <color name="filter_title_color">#EDEEF1</color>
+    <color name="filter_summary_color">#C2C4CF</color>
+    <color name="add_custom_filter_text_input_hint_color">#EDEEF1</color>
+    <color name="add_custom_filter_edit_text_hint_color">#C2C4CF</color>
+    <color name="add_custom_filter_summary_color">#C2C4CF</color>
+    <color name="add_custom_filter_tint_color">#C2C4CF</color>
+
+    <color name="brave_stats_text_color">#F0F2FF</color>
+
+    <color name="brave_blue_tint_color">#009753</color>
+
+    <color name="wallet_secondary_layout_text_color">#C2C4CF</color>
+    <color name="wallet_error_text_color">#FF4B6A</color>
+
+    <!-- Quick Action Search and Bookmark Widget -->
+    <color name="quick_action_search_and_bookmark_widget_bookmark_bg_color">#FFFFFF</color>
+    <color name="quick_action_search_and_bookmark_widget_tint">#F0F2FF</color>
+    <color name="quick_action_search_and_bookmark_widget_text_color">#CED0DB</color>
+
+    <color name="bookmark_menu_text_color">#C2C4CF</color>
+    <color name="bookmark_menu_bg_color">#2E3039</color>
+    <color name="bookmark_import_export_toast_bg_color">#1E2025</color>
+    <color name="bookmark_import_export_dialog_title_color">#EDEEF1</color>
+    <color name="bookmark_import_export_dialog_secondary_color">#878DA6</color>
+    <color name="bookmark_import_export_dialog_button_color">#6CC18A</color>
+
+    <color name="notification_volume_icon_color">#F0F2FF</color>
+    <color name="notification_bat1_icon_color">#70BA89</color>
+    <color name="notification_bat2_icon_color">#FF7654</color>
+    <color name="notification_bat3_icon_color">#70BA89</color>
+    <color name="notification_graph_icon_color">#FF7654</color>
+    <color name="notification_badge_icon_color">#009753</color>
+    <color name="notification_download_icon_color">#F0F2FF</color>
+    <color name="notification_rationale_dialog_card_bg_color">#17171F</color>
+
+    <color name="text_primary">#e4e4e5</color>
+    <color name="text_secondary">#c9c9ca</color>
+    <color name="text_tertiary">#909093</color>
+    <color name="primary_20">#003d1e</color>
+    <color name="button_background">@color/primitive_primary_80</color>
+    <color name="button_background_10">#191AE382</color>
+    <color name="systemfeedback_error_text">#ff7f72</color>
+
+    <color name="location_bar_background_color_for_ntp">#383839</color>
+    <color name="toolbar_background_color_for_ntp">#1f1f1f</color>
+
+    <color name="schemes_on_surface">#e4e4e5</color>
+    <color name="schemes_on_surface_variant">#c9c9ca</color>
+    <color name="schemes_outline_variant">#464649</color>
+    <color name="schemes_primary">@color/primitive_primary_80</color>
+    <color name="schemes_on_primary">#003419</color>
+    <color name="schemes_surface_container_highest">#343438</color>
+    <color name="schemes_surface_container_lowest">#0f0f0f</color>
+    <color name="schemes_surface_container">#1F1F23</color>
+
+    <color name="text_interactive">@color/primitive_primary_80</color>
+
+    <color name="open_yt_dialog_bg">#000000</color>
+</resources>

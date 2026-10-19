@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grit latest_public_release="0" current_release="1">
+  <outputs>
+    <output filename="grit/adblock_resources.h" type="rc_header">
+      <emit emit_type='prepend'></emit>
+    </output>
+    <output filename="adblock_resources.pak" type="data_package" />
+  </outputs>
+  <release seq="1">
+    <includes>
+      <!-- The scriptlets and redirect resources of Brave's "Brave Ad Block
+           Resources Library" component, for builds that can't fetch it
+           (brave_shields_lists_from_sources). Assembled the way Brave's
+           brave-core-crx-packager builds the component, from brave/uBlock
+           4dfbb048 and brave/adblock-resources 6da9b247. -->
+      <include name="IDR_BRAVE_SHIELDS_ADBLOCK_RESOURCES_JSON" file="resources.json" type="BINDATA" compress="gzip" />
+    </includes>
+  </release>
+</grit>

@@ -1,0 +1,22 @@
+# Copyright (c) 2026 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+substitutions:
+  - description: Keep the Brave resources the exclusion regex would drop.
+    add_literal_to_list:
+      target: target_name
+      list_name: resource_exclusion_exceptions
+      literal: brave_resources_exclusion_exceptions
+      type: target
+      template: chrome_common_apk_or_module_tmpl
+
+  - description: Add the Brave ProGuard flags.
+    add_literal_to_list:
+      target: target_name
+      list_name: proguard_configs
+      literal: '[ "//brave/android/java/proguard.flags" ]'
+      type: target
+      conditional: '!is_java_debug'
+      template: chrome_common_apk_or_module_tmpl

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2019 The Brave Authors. All rights reserved.
+     This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this file,
+     You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      android:id="@+id/brave_toolbar_container"
+      android:orientation="horizontal"
+      android:layout_width="wrap_content"
+      android:layout_height="match_parent" >
+
+    <FrameLayout android:id="@+id/brave_youtube_pip_layout"
+        android:layout_width="45dp"
+        android:orientation="vertical"
+        android:background="@drawable/modern_toolbar_background_grey_middle_segment"
+        android:layout_height="match_parent"
+        android:visibility="gone" >
+
+        <ImageButton android:id="@+id/brave_youtube_pip_button"
+            style="@style/ToolbarButton"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/ic_picture_in_picture"
+            android:layout_gravity="center"
+            android:contentDescription="@string/accessibility_toolbar_btn_brave_pip" />
+    </FrameLayout>
+
+  <FrameLayout android:id="@+id/brave_nomusic_button_layout"
+      android:layout_width="45dp"
+      android:orientation="vertical"
+      android:background="@drawable/modern_toolbar_background_grey_middle_segment"
+      android:layout_height="match_parent" >
+
+      <ImageButton android:id="@+id/brave_nomusic_button"
+          style="@style/ToolbarButton"
+          android:layout_marginTop="8dp"
+          android:layout_marginBottom="8dp"
+          android:src="@drawable/ic_brave_nomusic_off"
+          app:tint="@color/default_icon_color_tint_list"
+          android:layout_gravity="center"
+          android:contentDescription="@string/accessibility_toolbar_btn_brave_nomusic" />
+  </FrameLayout>
+
+  <FrameLayout android:id="@+id/brave_shields_button_layout"
+      android:layout_width="45dp"
+      android:orientation="vertical"
+      android:background="@drawable/modern_toolbar_background_grey_end_segment"
+      android:layout_height="match_parent" >
+
+      <ImageButton android:id="@+id/brave_shields_button"
+          style="@style/ToolbarButton"
+          android:layout_marginTop="8dp"
+          android:layout_marginBottom="8dp"
+          android:src="@drawable/ic_shields_toolbar_on"
+          android:layout_gravity="center"
+          android:contentDescription="@string/accessibility_toolbar_btn_brave_shields" />
+  </FrameLayout>
+</LinearLayout>

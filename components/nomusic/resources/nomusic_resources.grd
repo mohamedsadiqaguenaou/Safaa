@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grit latest_public_release="0" current_release="1">
+  <outputs>
+    <output filename="grit/nomusic_resources.h" type="rc_header">
+      <emit emit_type='prepend'></emit>
+    </output>
+    <output filename="nomusic_resources.pak" type="data_package" />
+  </outputs>
+  <release seq="1">
+    <includes>
+      <!-- Page engine injected by NoMusicTabHelper. -->
+      <include name="IDR_NOMUSIC_ENGINE_JS" file="nomusic_engine.js" type="BINDATA" compress="gzip" />
+      <!-- FastEnhancer-T speech enhancer, prebuilt by the NoMusic project. -->
+      <include name="IDR_NOMUSIC_FASTENHANCER_T_WASM" file="fastenhancer_t.wasm" type="BINDATA" compress="gzip" />
+      <!-- RNNoise post-filter, prebuilt by the NoMusic project. -->
+      <include name="IDR_NOMUSIC_RNNOISE_WASM" file="rnnoise.wasm" type="BINDATA" compress="gzip" />
+    </includes>
+  </release>
+</grit>

@@ -1,0 +1,76 @@
+/* Copyright (c) 2022 The Brave Authors. All rights reserved.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+package org.chromium.chrome.browser.omnibox;
+
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.util.AttributeSet;
+import android.view.View;
+import android.widget.ImageButton;
+
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.widget.ImageViewCompat;
+
+import org.chromium.chrome.browser.omnibox.status.StatusView;
+
+public class BraveLocationBarLayout extends LocationBarLayout {
+    private final ImageButton mQRButton;
+
+    public BraveLocationBarLayout(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        mQRButton = findViewById(R.id.qr_button);
+    }
+
+    public BraveLocationBarLayout(Context context, AttributeSet attrs, int layoutId) {
+        super(context, attrs, layoutId);
+        mQRButton = findViewById(R.id.qr_button);
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+
+        StatusView statusView = findViewById(R.id.location_bar_status);
+        statusView.setBackgroundDrawable(null);
+
+        // Ensure these location bar buttons are aligned to parent by top/bottom. Otherwise they
+        // look as misaligned.
+        tieTopAndBottomToParent(R.id.location_bar_status);
+        tieTopAndBottomToParent(R.id.bookmark_button);
+        tieTopAndBottomToParent(R.id.mic_button);
+        tieTopAndBottomToParent(R.id.delete_button);
+        tieTopAndBottomToParent(R.id.install_button);
+    }
+
+    @Override
+    float getUrlBarTranslationXForFocusAndScrollAnimationOnNtp(
+            float ntpSearchBoxScrollFraction,
+            float urlFocusChangeFraction,
+            boolean isUrlFocusChangeInProgress,
+            boolean isOnTablet) {
+        // Upstream slides the text towards the search engine logo to line it up with the fake
+        // search box of its NTP. Brave's NTP has none, so the slide only hid the start of the
+        // hint under the logo, e.g. with Google as the search engine.
+        return 0;
+    }
+
+    void tieTopAndBottomToParent(int id) {
+        View view = findViewById(id);
+        ConstraintLayout.LayoutParams params =
+                (ConstraintLayout.LayoutParams) view.getLayoutParams();
+        params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
+        view.setLayoutParams(params);
+    }
+
+    void setQRButtonTint(ColorStateList colorStateList) {
+        ImageViewCompat.setImageTintList(mQRButton, colorStateList);
+    }
+
+    void setQRButtonVisibility(boolean shouldShow) {
+        mQRButton.setVisibility(shouldShow ? VISIBLE : GONE);
+    }
+}

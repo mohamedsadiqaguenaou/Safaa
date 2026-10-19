@@ -1,0 +1,186 @@
+/* Copyright (c) 2020 The Brave Authors. All rights reserved.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+package org.chromium.chrome.browser.ntp;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.util.AttributeSet;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ScrollView;
+
+import org.chromium.chrome.R;
+import org.chromium.chrome.browser.native_page.ContextMenuManager;
+import org.chromium.chrome.browser.native_page.NativePageNavigationDelegate;
+import org.chromium.components.content_settings.CookieControlsEnforcement;
+import org.chromium.ui.base.ViewUtils;
+
+/** The New Tab Page to use in the incognito profile. */
+public class IncognitoNewTabPageView extends FrameLayout {
+    private IncognitoNewTabPageManager mManager;
+    private boolean mFirstShow = true;
+    private NewTabPageScrollView mScrollView;
+
+    private int mSnapshotWidth;
+    private int mSnapshotHeight;
+    private int mSnapshotScrollY;
+
+    /** Manages the view interaction with the rest of the system. */
+    interface IncognitoNewTabPageManager {
+        /** Loads a page explaining details about incognito mode in the current tab. */
+        void loadIncognitoLearnMore();
+
+        /**
+         * Called when the NTP has completely finished loading (all views will be inflated and any
+         * dependent resources will have been loaded).
+         */
+        void onLoadingComplete();
+    }
+
+    /**
+     * Default constructor needed to inflate via XML.
+     *
+     * @noinspection ConstantValue
+     */
+    public IncognitoNewTabPageView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        // These checks are just making sure that these values are still used in Chromium to avoid
+        // lint issues.
+        assert R.string.accessibility_new_incognito_tab_page > 0
+                : "Something has changed in the upstream!";
+
+        assert R.drawable.incognito_splash > 0 : "Something has changed in the upstream!";
+
+        // Added this check just to avoid resource is not used warning. We use own own private tab
+        // UI.
+        assert R.dimen.incognito_ntp_fading_shadow_size > 0
+                : "Something has changed in the upstream!";
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+
+        mScrollView = (NewTabPageScrollView) findViewById(R.id.ntp_scrollview);
+        setContentDescription(
+                getResources().getText(R.string.accessibility_new_incognito_tab_page));
+
+        // FOCUS_BEFORE_DESCENDANTS is needed to support keyboard shortcuts. Otherwise, pressing
+        // any shortcut causes the UrlBar to be focused. See ViewRootImpl.leaveTouchMode().
+        mScrollView.setDescendantFocusability(FOCUS_BEFORE_DESCENDANTS);
+
+        // Nala icons default to @color/icon_default; override just the icon layer
+        // (not the circle) so the private NTP shows the designed purple.
+        int iconTint = getContext().getColor(R.color.primitive_private_window_60);
+        tintLayerListIcon(R.id.iv_first_icon, iconTint);
+        tintLayerListIcon(R.id.iv_second_icon, iconTint);
+    }
+
+    private void tintLayerListIcon(int imageViewId, int tint) {
+        ImageView imageView = findViewById(imageViewId);
+        if (imageView == null) return;
+        Drawable drawable = imageView.getDrawable();
+        if (!(drawable instanceof LayerDrawable)) return;
+        LayerDrawable layers = (LayerDrawable) drawable.mutate();
+        Drawable iconLayer = layers.getDrawable(1).mutate();
+        iconLayer.setTint(tint);
+    }
+
+    /**
+     * Initialize the incognito New Tab Page.
+     *
+     * @param manager The manager that handles external dependencies of the view.
+     * @param contextMenuManager Unused, Brave's private NTP has no clickable-span links.
+     * @param navigationDelegate Unused, Brave's private NTP has no clickable-span links.
+     */
+    void initialize(
+            IncognitoNewTabPageManager manager,
+            ContextMenuManager contextMenuManager,
+            NativePageNavigationDelegate navigationDelegate) {
+        mManager = manager;
+    }
+
+    /** @return The IncognitoNewTabPageManager associated with this IncognitoNewTabPageView. */
+    protected IncognitoNewTabPageManager getManager() {
+        return mManager;
+    }
+
+    /**
+     * @return The ScrollView of within the page. Used for padding when drawing edge to edge.
+     */
+    ScrollView getScrollView() {
+        return mScrollView;
+    }
+
+    /**
+     * @see org.chromium.chrome.browser.compositor.layouts.content.
+     *     InvalidationAwareThumbnailProvider#shouldCaptureThumbnail()
+     */
+    boolean shouldCaptureThumbnail() {
+        if (getWidth() == 0 || getHeight() == 0) return false;
+
+        return getWidth() != mSnapshotWidth
+                || getHeight() != mSnapshotHeight
+                || mScrollView.getScrollY() != mSnapshotScrollY;
+    }
+
+    /**
+     * @see org.chromium.chrome.browser.compositor.layouts.content.
+     *         InvalidationAwareThumbnailProvider#captureThumbnail(Canvas)
+     */
+    void captureThumbnail(Canvas canvas) {
+        ViewUtils.captureBitmap(this, canvas);
+        mSnapshotWidth = getWidth();
+        mSnapshotHeight = getHeight();
+        mSnapshotScrollY = mScrollView.getScrollY();
+    }
+
+    /**
+     * Set the visibility of the cookie controls card on the incognito description.
+     * @param isVisible Whether it's visible or not.
+     */
+    void setIncognitoCookieControlsCardVisibility(boolean isVisible) {}
+
+    /**
+     * Set the toggle on the cookie controls card.
+     * @param isChecked Whether it's checked or not.
+     */
+    void setIncognitoCookieControlsToggleChecked(boolean isChecked) {}
+
+    /**
+     * Set the incognito cookie controls toggle checked change listener.
+     * @param listener The given checked change listener.
+     */
+    void setIncognitoCookieControlsToggleCheckedListener(OnCheckedChangeListener listener) {}
+
+    /**
+     * Set the enforcement rule for the incognito cookie controls toggle.
+     * @param enforcement The enforcement enum to set.
+     */
+    void setIncognitoCookieControlsToggleEnforcement(@CookieControlsEnforcement int enforcement) {}
+
+    /**
+     * Set the incognito cookie controls icon click listener.
+     * @param listener The given onclick listener.
+     */
+    void setIncognitoCookieControlsIconOnclickListener(OnClickListener listener) {}
+
+    void setIncognitoNewTabHeader(String newTabPageHeader) {}
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        assert mManager != null;
+        if (mFirstShow) {
+            mManager.onLoadingComplete();
+            mFirstShow = false;
+        }
+    }
+}

@@ -1,0 +1,11 @@
+# Copyright (c) 2026 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+declare_args() {
+  # Shields takes its filter lists straight from the lists' own sites and its
+  # scriptlets from the app, instead of from Brave's component updater, which
+  # serves only builds that carry Brave's services key.
+  brave_shields_lists_from_sources = is_android
+}

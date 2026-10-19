@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 The Brave Authors. All rights reserved.
+     This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this file,
+     You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
+<!-- The NoMusic welcome page: a video playing, its music struck out by the NoMusic logo, and
+     the voices it keeps. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="300dp"
+    android:viewportWidth="320"
+    android:viewportHeight="300">
+
+    <!-- The video. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#D6E4DA"
+        android:strokeWidth="2"
+        android:pathData="M48,22 H272 A20,20 0 0 1 292,42 V166 A20,20 0 0 1 272,186 H48 A20,20 0 0 1 28,166 V42 A20,20 0 0 1 48,22 Z" />
+    <path
+        android:fillColor="#DFF6E5"
+        android:pathData="M54,36 H266 A12,12 0 0 1 278,48 V134 A12,12 0 0 1 266,146 H54 A12,12 0 0 1 42,134 V48 A12,12 0 0 1 54,36 Z" />
+    <path
+        android:fillColor="#006D3B"
+        android:pathData="M134,91 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M152,78 L152,104 L174,91 Z" />
+    <path
+        android:strokeColor="#D6E4DA"
+        android:strokeLineCap="round"
+        android:strokeWidth="6"
+        android:pathData="M56,166 H264" />
+    <path
+        android:strokeColor="#006D3B"
+        android:strokeLineCap="round"
+        android:strokeWidth="6"
+        android:pathData="M56,166 H138" />
+    <path
+        android:fillColor="#006D3B"
+        android:pathData="M130,166 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0 Z" />
+
+    <!-- The music, removed: the NoMusic logo on a badge. -->
+    <path
+        android:fillColor="#FFE3F1"
+        android:pathData="M62,245 a36,36 0 1,0 72,0 a36,36 0 1,0 -72,0 Z" />
+    <group
+        android:translateX="68"
+        android:translateY="215"
+        android:scaleX="2.5"
+        android:scaleY="2.5">
+        <path
+            android:fillColor="#FF66B3"
+            android:pathData="M8.7,5.6 L20.4,2.2 L20.4,16.2 L19.6,16.2 L19.6,6.4 L9.5,9.4 L9.5,19.3 L8.7,19.3 Z" />
+        <group
+            android:pivotX="6.3"
+            android:pivotY="19.8"
+            android:rotation="-20">
+            <path
+                android:fillColor="#FF66B3"
+                android:pathData="M3.3,19.8 a3,2.15 0 1,0 6,0 a3,2.15 0 1,0 -6,0 Z" />
+        </group>
+        <group
+            android:pivotX="17.3"
+            android:pivotY="16.7"
+            android:rotation="-20">
+            <path
+                android:fillColor="#FF66B3"
+                android:pathData="M14.3,16.7 a3,2.15 0 1,0 6,0 a3,2.15 0 1,0 -6,0 Z" />
+        </group>
+        <path
+            android:strokeColor="#FFE3F1"
+            android:strokeLineCap="round"
+            android:strokeWidth="3"
+            android:pathData="M2.6,21.6 L21.6,1.9" />
+        <path
+            android:strokeColor="#1C1C1C"
+            android:strokeLineCap="round"
+            android:strokeWidth="1.5"
+            android:pathData="M2.6,21.6 L21.6,1.9" />
+    </group>
+
+    <!-- The voices, kept. -->
+    <path
+        android:strokeColor="#006D3B"
+        android:strokeLineCap="round"
+        android:strokeWidth="8"
+        android:pathData="M158,236 V254 M171,228 V262 M184,219 V271 M197,230 V260 M210,213 V277 M223,225 V265 M236,234 V256 M249,222 V268 M262,232 V258" />
+</vector>

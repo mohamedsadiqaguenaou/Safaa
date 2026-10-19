@@ -1,0 +1,1827 @@
+/* Copyright (c) 2019 The Brave Authors. All rights reserved.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+package org.chromium.chrome.browser.app;
+
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.PictureInPictureParams;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentSender;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.res.Configuration;
+import android.graphics.Rect;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatEditText;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.brave.playlist.util.ConstantUtils;
+import com.brave.playlist.util.PlaylistPreferenceUtils;
+import com.brave.playlist.util.PlaylistUtils;
+import com.google.android.gms.tasks.Task;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.InstallStateUpdatedListener;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.InstallStatus;
+import com.google.android.play.core.install.model.UpdateAvailability;
+
+import org.jni_zero.JNINamespace;
+import org.jni_zero.NativeMethods;
+
+import org.chromium.base.ApplicationState;
+import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ApplicationStatus.ApplicationStateListener;
+import org.chromium.base.BraveFeatureList;
+import org.chromium.base.BravePreferenceKeys;
+import org.chromium.base.BraveReflectionUtil;
+import org.chromium.base.CollectionUtil;
+import org.chromium.base.CommandLine;
+import org.chromium.base.ContextUtils;
+import org.chromium.base.IntentUtils;
+import org.chromium.base.Log;
+import org.chromium.base.ThreadUtils;
+import org.chromium.base.supplier.MonotonicObservableSupplier;
+import org.chromium.base.supplier.SettableMonotonicObservableSupplier;
+import org.chromium.base.task.PostTask;
+import org.chromium.base.task.TaskTraits;
+import org.chromium.base.ui.KeyboardUtils;
+import org.chromium.brave.browser.customize_menu.CustomizeBraveMenu;
+import org.chromium.brave.browser.quick_search_engines.settings.QuickSearchEnginesCallback;
+import org.chromium.brave.browser.quick_search_engines.settings.QuickSearchEnginesFragment;
+import org.chromium.brave.browser.quick_search_engines.settings.QuickSearchEnginesModel;
+import org.chromium.brave.browser.quick_search_engines.utils.QuickSearchEnginesUtil;
+import org.chromium.brave.browser.quick_search_engines.views.QuickSearchEnginesViewAdapter;
+import org.chromium.build.annotations.MonotonicNonNull;
+import org.chromium.chrome.R;
+import org.chromium.chrome.browser.BraveAdFreeCalloutDialogFragment;
+import org.chromium.chrome.browser.BraveConstants;
+import org.chromium.chrome.browser.BraveHelper;
+import org.chromium.chrome.browser.BraveIntentHandler;
+import org.chromium.chrome.browser.BraveRelaunchUtils;
+import org.chromium.chrome.browser.ChromeTabbedActivity;
+import org.chromium.chrome.browser.IntentHandler;
+import org.chromium.chrome.browser.LaunchIntentDispatcher;
+import org.chromium.chrome.browser.OpenYtInBraveDialogFragment;
+import org.chromium.chrome.browser.app.tabwindow.TabWindowManagerSingleton;
+import org.chromium.chrome.browser.bookmarks.TabBookmarker;
+import org.chromium.chrome.browser.brave_shields.BraveFirstPartyStorageCleanerUtils;
+import org.chromium.chrome.browser.brave_shields.FirstPartyStorageCleanerAnimationFragment;
+import org.chromium.chrome.browser.brave_shields.FirstPartyStorageCleanerInterface;
+import org.chromium.chrome.browser.browsing_data.BraveShortcutsUtils;
+import org.chromium.chrome.browser.browsing_data.BrowsingDataBridge;
+import org.chromium.chrome.browser.browsing_data.BrowsingDataType;
+import org.chromium.chrome.browser.browsing_data.TimePeriod;
+import org.chromium.chrome.browser.compositor.layouts.LayoutManagerChrome;
+import org.chromium.chrome.browser.compositor.layouts.LayoutManagerImpl;
+import org.chromium.chrome.browser.customtabs.CustomTabActivity;
+import org.chromium.chrome.browser.day_zero.DayZeroHelper;
+import org.chromium.chrome.browser.flags.ChromeFeatureList;
+import org.chromium.chrome.browser.flags.ChromeSwitches;
+import org.chromium.chrome.browser.fullscreen.BrowserControlsManager;
+import org.chromium.chrome.browser.incognito.reauth.IncognitoReauthController;
+import org.chromium.chrome.browser.incognito.reauth.IncognitoReauthManager;
+import org.chromium.chrome.browser.layouts.LayoutType;
+import org.chromium.chrome.browser.lifetime.ApplicationLifetime;
+import org.chromium.chrome.browser.media.BraveYouTubePictureInPictureController;
+import org.chromium.chrome.browser.misc_metrics.MiscAndroidMetricsConnectionErrorHandler;
+import org.chromium.chrome.browser.misc_metrics.MiscAndroidMetricsFactory;
+import org.chromium.chrome.browser.multiwindow.BraveMultiWindowUtils;
+import org.chromium.chrome.browser.multiwindow.MultiInstanceManager;
+import org.chromium.chrome.browser.multiwindow.MultiInstanceManager.PersistedInstanceType;
+import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
+import org.chromium.chrome.browser.notifications.permissions.NotificationPermissionController;
+import org.chromium.chrome.browser.ntp.BraveFreshNtpHelper;
+import org.chromium.chrome.browser.ntp.NewTabPageManager;
+import org.chromium.chrome.browser.playlist.PlaylistHostActivity;
+import org.chromium.chrome.browser.playlist.settings.BravePlaylistPreferences;
+import org.chromium.chrome.browser.preferences.BravePrefServiceBridge;
+import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
+import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
+import org.chromium.chrome.browser.preferences.Pref;
+import org.chromium.chrome.browser.preferences.website.BraveShieldsContentSettings;
+import org.chromium.chrome.browser.prefetch.settings.PreloadPagesSettingsBridge;
+import org.chromium.chrome.browser.prefetch.settings.PreloadPagesState;
+import org.chromium.chrome.browser.privacy.settings.BravePrivacySettings;
+import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.profiles.ProfileManager;
+import org.chromium.chrome.browser.rate.BraveRateDialogFragment;
+import org.chromium.chrome.browser.rate.RateUtils;
+import org.chromium.chrome.browser.safe_browsing.SafeBrowsingBridge;
+import org.chromium.chrome.browser.safe_browsing.SafeBrowsingState;
+import org.chromium.chrome.browser.search_engines.TemplateUrlServiceFactory;
+import org.chromium.chrome.browser.set_default_browser.BraveSetDefaultBrowserUtils;
+import org.chromium.chrome.browser.settings.BraveSearchEngineUtils;
+import org.chromium.chrome.browser.settings.SettingsNavigationFactory;
+import org.chromium.chrome.browser.shields.ContentFilteringFragment;
+import org.chromium.chrome.browser.shields.CreateCustomFiltersFragment;
+import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabLaunchType;
+import org.chromium.chrome.browser.tab.TabSelectionType;
+import org.chromium.chrome.browser.tabbed_mode.BraveTabbedAppMenuPropertiesDelegate;
+import org.chromium.chrome.browser.tabmodel.TabClosureParams;
+import org.chromium.chrome.browser.tabmodel.TabList;
+import org.chromium.chrome.browser.tabmodel.TabModel;
+import org.chromium.chrome.browser.tabmodel.TabModelUtils;
+import org.chromium.chrome.browser.tabwindow.TabWindowManager;
+import org.chromium.chrome.browser.toolbar.BraveToolbarManager;
+import org.chromium.chrome.browser.toolbar.bottom.BottomToolbarConfiguration;
+import org.chromium.chrome.browser.toolbar.top.BraveToolbarLayoutImpl;
+import org.chromium.chrome.browser.ui.RootUiCoordinator;
+import org.chromium.chrome.browser.ui.appmenu.AppMenuPropertiesDelegate;
+import org.chromium.chrome.browser.ui.messages.snackbar.Snackbar;
+import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager;
+import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager.SnackbarController;
+import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManagerProvider;
+import org.chromium.chrome.browser.util.KeyboardVisibilityHelper;
+import org.chromium.chrome.browser.util.PackageUtils;
+import org.chromium.chrome.browser.util.UsageMonitor;
+import org.chromium.components.browser_ui.settings.SettingsNavigation;
+import org.chromium.components.browser_ui.util.motion.MotionEventInfo;
+import org.chromium.components.embedder_support.util.UrlUtilities;
+import org.chromium.components.omnibox.AutocompleteRequestType;
+import org.chromium.components.safe_browsing.BraveSafeBrowsingApiHandler;
+import org.chromium.components.search_engines.TemplateUrl;
+import org.chromium.components.user_prefs.UserPrefs;
+import org.chromium.content_public.browser.LoadUrlParams;
+import org.chromium.content_public.browser.WebContents;
+import org.chromium.misc_metrics.mojom.MiscAndroidMetrics;
+import org.chromium.ui.widget.Toast;
+import org.chromium.url.GURL;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+/** Brave's extension for ChromeActivity */
+@JNINamespace("chrome::android")
+@SuppressWarnings("UseSharedPreferencesManagerFromChromeCheck")
+public abstract class BraveActivity extends ChromeActivity
+        implements BrowsingDataBridge.OnClearBrowsingDataListener,
+                BraveSafeBrowsingApiHandler.BraveSafeBrowsingApiHandlerDelegate,
+                MiscAndroidMetricsConnectionErrorHandler
+                        .MiscAndroidMetricsConnectionErrorHandlerDelegate,
+                QuickSearchEnginesCallback,
+                KeyboardVisibilityHelper.KeyboardVisibilityListener,
+                OnSharedPreferenceChangeListener,
+                FirstPartyStorageCleanerInterface {
+    public static final String OPEN_URL = "open_url";
+    public static final String BRAVE_WEBCOMPAT_INFO_WIKI_URL =
+            "https://github.com/brave/brave-browser/wiki/Web-compatibility-reports";
+    private static final String TAG = "BraveActivity";
+
+    private static final int MONTH_1 = 1;
+
+    public static final String GOOGLE_SEARCH_ENGINE_KEYWORD = ":g";
+    public static final String YOUTUBE_SEARCH_ENGINE_KEYWORD = ":yt";
+    public static final String BRAVE_SEARCH_ENGINE_KEYWORD = ":br";
+    public static final String BING_SEARCH_ENGINE_KEYWORD = ":b";
+    public static final String STARTPAGE_SEARCH_ENGINE_KEYWORD = ":sp";
+
+    // Explicitly declare this variable to avoid build errors.
+    // It will be removed in asm and parent variable will be used instead.
+    private SettableMonotonicObservableSupplier<BrowserControlsManager>
+            mBrowserControlsManagerSupplier;
+
+    private static final int PIP_UPDATE_DELAY_MS = 500;
+
+    public boolean mIsDeepLink;
+    private MiscAndroidMetrics mMiscAndroidMetrics;
+    private int mLastTabId;
+    private boolean mSafeBrowsingFlagEnabled;
+    private NewTabPageManager mNewTabPageManager;
+    private UsageMonitor mUsageMonitor;
+    private NotificationPermissionController mNotificationPermissionController;
+    private MiscAndroidMetricsConnectionErrorHandler mMiscAndroidMetricsConnectionErrorHandler;
+    private AppUpdateManager mAppUpdateManager;
+    private boolean mSpoofCustomTab;
+
+    // Owns YouTube Picture-in-Picture session state and lifecycle.
+    // Lazily created the first time a hook needs it; never null after first access.
+    @MonotonicNonNull
+    private BraveYouTubePictureInPictureController mYouTubePictureInPictureController;
+
+    private View mQuickSearchEnginesView;
+
+    private ApplicationStateListener mApplicationStateListener;
+    private IncognitoReauthController mIncognitoReauthController;
+    // Genuine cold start vs an in-process recreation (e.g. foldable fold/unfold). Set once in
+    // initializeState() and never mutated: several cold-start-only behaviors read it.
+    private boolean mIsColdStart;
+    // One-shot guard so the app-close shred notification fires at most once per cold start.
+    private boolean mAppCloseShredTriggered;
+
+    // Day Zero experiment variant, read in finishNativeInitialization().
+    private String mDayZeroVariant;
+
+    /** Serves as a general exception for failed attempts to get BraveActivity. */
+    public static class BraveActivityNotFoundException extends Exception {
+        public BraveActivityNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    public BraveActivity() {}
+
+    @Override
+    protected void onPostCreate() {
+        super.onPostCreate();
+        getYouTubePictureInPictureController().onPostCreate(getSavedInstanceState());
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        getYouTubePictureInPictureController().onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onResumeWithNative() {
+        super.onResumeWithNative();
+
+        BraveActivityJni.get().restartStatsUpdater();
+
+        BraveSafeBrowsingApiHandler.getInstance()
+                .setDelegate(BraveActivityJni.get().getSafeBrowsingApiKey(), this);
+
+        // We can store a state of that flag as a browser has to be restarted
+        // when the flag state is changed in any case
+        mSafeBrowsingFlagEnabled =
+                ChromeFeatureList.isEnabled(BraveFeatureList.BRAVE_ANDROID_SAFE_BROWSING);
+
+        executeInitSafeBrowsing(0);
+
+        if (mAppUpdateManager == null) {
+            mAppUpdateManager = AppUpdateManagerFactory.create(BraveActivity.this);
+        }
+        mAppUpdateManager
+                .getAppUpdateInfo()
+                .addOnSuccessListener(
+                        appUpdateInfo -> {
+                            if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                                completeUpdateSnackbar();
+                            }
+                        });
+
+        if (mMiscAndroidMetrics != null) {
+            Intent resumeIntent = getIntent();
+            if (resumeIntent != null
+                    && Intent.ACTION_VIEW.equals(resumeIntent.getAction())
+                    && resumeIntent.getData() != null) {
+                mMiscAndroidMetrics.recordIntentUrl(resumeIntent.getData().toString());
+            }
+        }
+
+        getYouTubePictureInPictureController().onResume();
+    }
+
+    @Override
+    public void onPauseWithNative() {
+        if (mUsageMonitor != null) {
+            mUsageMonitor.stop();
+        }
+        super.onPauseWithNative();
+    }
+
+    @Override
+    public boolean onMenuOrKeyboardAction(
+            int id,
+            boolean fromMenu,
+            @Nullable Bundle menuItemData,
+            @Nullable MotionEventInfo triggeringMotion) {
+        final Tab currentTab = getActivityTab();
+        // Handle items replaced by Brave.
+        if (id == R.id.preferences_id) {
+            final AppMenuPropertiesDelegate delegate = createAppMenuPropertiesDelegate();
+            assert delegate instanceof BraveTabbedAppMenuPropertiesDelegate;
+            final BraveTabbedAppMenuPropertiesDelegate braveTabbedAppMenuPropertiesDelegate =
+                    (BraveTabbedAppMenuPropertiesDelegate) delegate;
+
+            final Bundle bundle =
+                    CustomizeBraveMenu.populateBundle(
+                            getResources(),
+                            new Bundle(),
+                            braveTabbedAppMenuPropertiesDelegate.buildMainMenuModelList(),
+                            braveTabbedAppMenuPropertiesDelegate.buildPageActionsModelList());
+            SettingsNavigation settingsNavigation =
+                    SettingsNavigationFactory.createSettingsNavigation();
+            // Follow upstream code and pass null as fragment to show
+            // that defaults to main settings screen.
+            settingsNavigation.startSettings(BraveActivity.this, null, bundle);
+            return true;
+        }
+
+        if (super.onMenuOrKeyboardAction(id, fromMenu, menuItemData, triggeringMotion)) {
+            return true;
+        }
+
+        // Handle items added by Brave.
+        if (currentTab == null) {
+            return false;
+        } else if (id == R.id.exit_id) {
+            exitBrave();
+        } else if (id == R.id.brave_playlist_id) {
+            openPlaylist(true);
+        } else if (id == R.id.add_to_playlist_id) {
+            BraveToolbarLayoutImpl layout = getBraveToolbarLayout();
+            layout.addMediaToPlaylist();
+        } else if (id == CustomizeBraveMenu.BRAVE_CUSTOMIZE_ITEM_ID) {
+            final AppMenuPropertiesDelegate delegate = createAppMenuPropertiesDelegate();
+            assert delegate instanceof BraveTabbedAppMenuPropertiesDelegate;
+            final BraveTabbedAppMenuPropertiesDelegate braveTabbedAppMenuPropertiesDelegate =
+                    (BraveTabbedAppMenuPropertiesDelegate) delegate;
+            CustomizeBraveMenu.openCustomizeMenuSettings(
+                    BraveActivity.this,
+                    braveTabbedAppMenuPropertiesDelegate.buildMainMenuModelList(),
+                    braveTabbedAppMenuPropertiesDelegate.buildPageActionsModelList());
+        } else if (id == R.id.brave_shred_id) {
+            shredData(currentTab);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void onDestroyInternal() {
+        if (mNotificationPermissionController != null) {
+            NotificationPermissionController.detach(mNotificationPermissionController);
+            mNotificationPermissionController = null;
+        }
+
+        // Unregister application state listener
+        if (mApplicationStateListener != null) {
+            ApplicationStatus.unregisterApplicationStateListener(mApplicationStateListener);
+            mApplicationStateListener = null;
+        }
+
+        BraveSafeBrowsingApiHandler.getInstance().shutdownSafeBrowsing();
+        if (mAppUpdateManager != null) {
+            mAppUpdateManager.unregisterListener(mInstallStateUpdatedListener);
+        }
+        getYouTubePictureInPictureController().onDestroy();
+        super.onDestroyInternal();
+        cleanUpMiscAndroidMetrics();
+    }
+
+    @Override
+    public void onNightModeStateChanged() {
+        // A dark/light theme change recreates the activity, which while a Brave-managed YouTube PiP
+        // session is active destroys the activity backing the PiP window. Let the controller decide
+        // whether to defer it; it re-applies the change on PiP exit via
+        // applyDeferredNightModeRecreate().
+        if (getYouTubePictureInPictureController().maybeDeferNightModeRecreate()) {
+            return;
+        }
+        super.onNightModeStateChanged();
+    }
+
+    @Override
+    protected boolean isStartedUpCorrectly(Intent intent) {
+        if (maybeRedirectLaunchToYouTubePictureInPictureWindow(intent)) {
+            return false;
+        }
+        return super.isStartedUpCorrectly(intent);
+    }
+
+    /**
+     * Hands a launcher tap to the window that owns a Brave YouTube Picture-in-Picture session,
+     * rather than letting it open a second window holding someone else's tabs.
+     *
+     * <p>PiP pins the browser task, leaving the launcher nothing to resume. Where the OS reads
+     * ChromeTabbedActivity as {@code singleInstancePerTask} (Samsung, via the {@code
+     * android.activity.launch_mode} meta-data) it answers by creating a second task, and {@code
+     * MultiInstanceManagerApi31#allocInstanceId} gives that unmapped task a different window id: a
+     * stale or empty set of tabs, while the real session sits behind the PiP window.
+     *
+     * <p>Fronting the PiP window unpins it, and aborting this activity drops the task it would have
+     * used.
+     *
+     * @return true if the launch was handed over and this activity should not start.
+     */
+    private boolean maybeRedirectLaunchToYouTubePictureInPictureWindow(Intent intent) {
+        // Launcher taps only. Upstream already routes stray VIEW intents to an existing window
+        // from maybeDispatchIntentInExistingActivity, and its own new window intents carry no
+        // action at all (MultiWindowUtils#createNewWindowIntent), so neither reaches this.
+        if (!Intent.ACTION_MAIN.equals(intent.getAction())
+                || !intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+            return false;
+        }
+
+        // The bytecode rewrite re-parents only ChromeTabbedActivity onto BraveActivity, so this
+        // instanceof picks out exactly the browser windows. isInPictureInPictureMode() goes first
+        // because it just reads a field; the other call would build a controller for every window.
+        BraveActivity pictureInPictureActivity = null;
+        for (Activity activity : ApplicationStatus.getRunningActivities()) {
+            if (activity == this || !(activity instanceof BraveActivity braveActivity)) {
+                continue;
+            }
+            if (!braveActivity.isInPictureInPictureMode()
+                    || !braveActivity.isYouTubePictureInPictureActive()) {
+                // An ordinary window is still alive, so the launcher had something to resume
+                // and this launch really is a request for another one.
+                return false;
+            }
+            pictureInPictureActivity = braveActivity;
+        }
+        if (pictureInPictureActivity == null) {
+            return false;
+        }
+
+        // Last, because it copies the whole shared-preference map. Only a task that never hosted
+        // a window can be the one Android just made for this launch. A window being recreated or
+        // restored reuses its own task and reaches here looking like a launcher tap too, since
+        // IntentHandler#rewriteFromHistoryIntent swaps in a synthetic MAIN/LAUNCHER intent;
+        // redirecting that would strand the user and remove the restored window's task.
+        if (BraveMultiWindowUtils.isTaskMappedToInstance(ApplicationStatus.getTaskId(this))) {
+            return false;
+        }
+
+        // Cannot select ourselves: this activity has no tab model selector yet, so it resolves
+        // to no window id.
+        final int windowId =
+                TabWindowManagerSingleton.getInstance().getIdForWindow(pictureInPictureActivity);
+        if (windowId == TabWindowManager.INVALID_WINDOW_ID) {
+            return false;
+        }
+        return MultiWindowUtils.launchIntentInInstance(intent, windowId);
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean inPicture, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(inPicture, newConfig);
+        BraveYouTubePictureInPictureController controller = getYouTubePictureInPictureController();
+        if (inPicture) {
+            if (controller.onEnterPictureInPictureMode()) {
+                // Adopting the same workaround adopted upstream, to check the full implementation
+                // see FullscreenVideoPictureInPictureController class.
+                // Post a delayed handler to update the Pip status, once things have had some
+                // time to settle. When switching into fullscreen mode sometimes the transition is
+                // called before relayout has happened, causing the source rectangle for the Pip
+                // transition to be wrong. This causes the Pip window to look like it moves to the
+                // wrong part of the screen and partially clipped before snapping to its normal
+                // place.
+                PostTask.postDelayedTask(
+                        TaskTraits.UI_BEST_EFFORT,
+                        () -> {
+                            try {
+                                setPictureInPictureParams(
+                                        new PictureInPictureParams.Builder().build());
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error setting PiP params", e);
+                            }
+                        },
+                        PIP_UPDATE_DELAY_MS);
+            }
+        } else {
+            controller.onExitPictureInPictureMode();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(
+            int itemId, @Nullable Bundle menuItemData, @Nullable MotionEventInfo triggeringMotion) {
+        if (itemId == R.id.new_tab_menu_id) {
+            LayoutManagerChrome layoutManager =
+                    (LayoutManagerChrome)
+                            BraveReflectionUtil.getField(
+                                    ChromeTabbedActivity.class, "mLayoutManager", this);
+            if (layoutManager != null
+                    && layoutManager.getHubLayoutForTesting() != null
+                    && !layoutManager.getHubLayoutForTesting().isActive()
+                    && mMiscAndroidMetrics != null) {
+                mMiscAndroidMetrics.recordAppMenuNewTab();
+            }
+        } else if (itemId == R.id.home_menu_id) {
+            if (getToolbarManager() instanceof BraveToolbarManager) {
+                ((BraveToolbarManager) getToolbarManager()).openHomepage();
+            }
+        }
+        return super.onOptionsItemSelected(itemId, menuItemData, triggeringMotion);
+    }
+
+    @Override
+    public void initializeState() {
+        if (BraveFreshNtpHelper.isEnabled()) {
+            setForegroundSessionEndsTriggered();
+        }
+        super.initializeState();
+        // Null savedInstanceState = real cold start; non-null = in-process recreation such as
+        // a fold/unfold. The app-exit behaviors below must run only on a real cold start,
+        // otherwise folding/unfolding wipes the live session.
+        mIsColdStart = getSavedInstanceState() == null;
+        if (isNoRestoreState() && mIsColdStart) {
+            CommandLine.getInstance().appendSwitch(ChromeSwitches.NO_RESTORE_STATE);
+        }
+
+        BraveSearchEngineUtils.initializeBraveSearchEngineStates(getTabModelSelector());
+    }
+
+    public int getLastTabId() {
+        return mLastTabId;
+    }
+
+    public void setLastTabId(int lastTabId) {
+        this.mLastTabId = lastTabId;
+    }
+
+    @Override
+    public void onBrowsingDataCleared() {}
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (mUsageMonitor != null) {
+            mUsageMonitor.start();
+        }
+    }
+
+    @Override
+    public void onStartWithNative() {
+        // Register application state listener to detect foreground session end
+        if (BraveFreshNtpHelper.isEnabled() && mApplicationStateListener == null) {
+            mApplicationStateListener = this::onApplicationStateChange;
+            ApplicationStatus.registerApplicationStateListener(mApplicationStateListener);
+        }
+
+        super.onStartWithNative();
+    }
+
+    /**
+     * Called when the application state changes. Similar to ChromeActivitySessionTracker, this
+     * detects when the foreground session ends (when all activities are stopped).
+     */
+    private void onApplicationStateChange(@ApplicationState int newState) {
+        if (newState == ApplicationState.HAS_STOPPED_ACTIVITIES) {
+            onForegroundSessionEnds();
+        }
+    }
+
+    /**
+     * Marks that the foreground session ends has been triggered. Called when the activity
+     * initializes state or when the foreground session ends.
+     */
+    private void setForegroundSessionEndsTriggered() {
+        // Note that the preference is reset to false when the app is foregrounded inside
+        // BraveReturnToChromeUtil.shouldShowNtpAsHomeSurfaceAtStartup() in case of always
+        // New Tab option is selected.
+        ChromeSharedPreferences.getInstance()
+                .writeBoolean(BravePreferenceKeys.BRAVE_FOREGROUND_SESSION_ENDS_TRIGGERED, true);
+    }
+
+    /**
+     * Called when the foreground session ends (when all activities are stopped). Similar to
+     * ChromeActivitySessionTracker#onForegroundSessionEnd().
+     */
+    protected void onForegroundSessionEnds() {
+        setForegroundSessionEndsTriggered();
+    }
+
+    @Override
+    protected void initializeStartupMetrics() {
+        super.initializeStartupMetrics();
+
+        // Disable FRE for arm64 builds where ChromeActivity is the one that
+        // triggers FRE instead of ChromeLauncherActivity on arm32 build.
+        BraveHelper.disableFREDRP();
+    }
+
+    @Override
+    public void turnSafeBrowsingOff() {
+        SafeBrowsingBridge safeBrowsingBridge = new SafeBrowsingBridge(getCurrentProfile());
+        safeBrowsingBridge.setSafeBrowsingState(SafeBrowsingState.NO_SAFE_BROWSING);
+    }
+
+    // Shows SafeBrowsing errors if the switch in Developer Options is on
+    @Override
+    public void maybeShowSafeBrowsingError(String error) {
+        if (ChromeSharedPreferences.getInstance()
+                .readBoolean(BravePreferenceKeys.BRAVE_SAFE_BROWSING_ERRORS, false)) {
+            Toast.makeText(BraveActivity.this, error, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public boolean isSafeBrowsingEnabled() {
+        return mSafeBrowsingFlagEnabled;
+    }
+
+    @Override
+    public Activity getActivity() {
+        return this;
+    }
+
+    @Override
+    public void finishNativeInitialization() {
+        super.finishNativeInitialization();
+
+        boolean isFirstInstall = PackageUtils.isFirstInstall(this);
+
+        String countryCode = Locale.getDefault().getCountry();
+
+        BraveHelper.maybeMigrateSettings();
+
+        if (ChromeSharedPreferences.getInstance()
+                .readBoolean(BravePreferenceKeys.BRAVE_DOUBLE_RESTART, false)) {
+            ChromeSharedPreferences.getInstance()
+                    .writeBoolean(BravePreferenceKeys.BRAVE_DOUBLE_RESTART, false);
+            BraveRelaunchUtils.restart();
+            return;
+        }
+
+        // Make sure this option is disabled
+        if (PreloadPagesSettingsBridge.getState(getCurrentProfile())
+                != PreloadPagesState.NO_PRELOADING) {
+            PreloadPagesSettingsBridge.setState(
+                    getCurrentProfile(), PreloadPagesState.NO_PRELOADING);
+        }
+
+        int appOpenCount =
+                ChromeSharedPreferences.getInstance()
+                        .readInt(BravePreferenceKeys.BRAVE_APP_OPEN_COUNT);
+        ChromeSharedPreferences.getInstance()
+                .writeInt(BravePreferenceKeys.BRAVE_APP_OPEN_COUNT, appOpenCount + 1);
+
+        if (isFirstInstall && appOpenCount == 0) {
+            enableSearchSuggestions();
+        }
+
+        BraveSetDefaultBrowserUtils.checkForBraveSetDefaultBrowser(
+                appOpenCount, BraveActivity.this);
+
+        initMiscAndroidMetrics();
+        mDayZeroVariant = getDayZeroVariant();
+
+        if (RateUtils.getInstance().isLastSessionShown()) {
+            RateUtils.getInstance().setPrefNextRateDate();
+            RateUtils.getInstance().setLastSessionShown(false);
+        }
+
+        if (!RateUtils.getInstance().getPrefRateEnabled()) {
+            RateUtils.getInstance().setPrefRateEnabled(true);
+            RateUtils.getInstance().setPrefNextRateDate();
+        }
+        RateUtils.getInstance().setTodayDate();
+
+        if (RateUtils.getInstance().shouldShowRateDialog(this)) {
+            showBraveRateDialog();
+            RateUtils.getInstance().setLastSessionShown(true);
+        }
+
+        // TODO commenting out below code as we may use it in next release
+
+        // if (PackageUtils.isFirstInstall(this)
+        //         &&
+        //
+        // SharedPreferencesManager.getInstance().readInt(BravePreferenceKeys.BRAVE_APP_OPEN_COUNT)
+        //         == 1) {
+        //     Calendar calender = Calendar.getInstance();
+        //     calender.setTime(new Date());
+        //     calender.add(Calendar.DATE, DAYS_4);
+        //     OnboardingPrefManager.getInstance().setNextOnboardingDate(
+        //         calender.getTimeInMillis());
+        // }
+
+        // OnboardingActivity onboardingActivity = null;
+        // for (Activity ref : ApplicationStatus.getRunningActivities()) {
+        //     if (!(ref instanceof OnboardingActivity)) continue;
+
+        //     onboardingActivity = (OnboardingActivity) ref;
+        // }
+
+        // if (onboardingActivity == null
+        //         && OnboardingPrefManager.getInstance().showOnboardingForSkip(this)) {
+        //     OnboardingPrefManager.getInstance().showOnboarding(this);
+        //     OnboardingPrefManager.getInstance().setOnboardingShownForSkip(true);
+        // }
+
+        checkFingerPrintingOnUpgrade(isFirstInstall);
+
+        if (countryCode.equals(BraveConstants.INDIA_COUNTRY_CODE)
+                && ChromeSharedPreferences.getInstance()
+                        .readBoolean(BravePreferenceKeys.BRAVE_AD_FREE_CALLOUT_DIALOG, true)
+                && getActivityTab() != null
+                && getActivityTab().getUrl().getSpec() != null
+                && UrlUtilities.isNtpUrl(getActivityTab().getUrl().getSpec())
+                && (ChromeSharedPreferences.getInstance()
+                                .readBoolean(BravePreferenceKeys.BRAVE_OPENED_YOUTUBE, false)
+                        || ChromeSharedPreferences.getInstance()
+                                        .readInt(BravePreferenceKeys.BRAVE_APP_OPEN_COUNT)
+                                >= 7)) {
+            showAdFreeCalloutDialog();
+        }
+
+        if (ChromeSharedPreferences.getInstance()
+                .readBoolean(BravePreferenceKeys.BRAVE_DEFERRED_DEEPLINK_PLAYLIST, false)) {
+            ChromeSharedPreferences.getInstance()
+                    .writeBoolean(BravePreferenceKeys.BRAVE_DEFERRED_DEEPLINK_PLAYLIST, false);
+            openPlaylist(false);
+        }
+
+        // Added to reset app links settings for upgrade case
+        if (!isFirstInstall
+                && !ChromeSharedPreferences.getInstance()
+                        .readBoolean(BravePrivacySettings.PREF_APP_LINKS, true)
+                && ChromeSharedPreferences.getInstance()
+                        .readBoolean(BravePrivacySettings.PREF_APP_LINKS_RESET, true)) {
+            ChromeSharedPreferences.getInstance()
+                    .writeBoolean(BravePrivacySettings.PREF_APP_LINKS, true);
+            ChromeSharedPreferences.getInstance()
+                    .writeBoolean(BravePrivacySettings.PREF_APP_LINKS_RESET, false);
+        }
+
+        if (isFirstInstall
+                && ChromeSharedPreferences.getInstance()
+                                .readInt(BravePreferenceKeys.BRAVE_APP_OPEN_COUNT)
+                        == 1) {
+            setInAppUpdateTiming();
+        }
+
+        // Check multiwindow toggle for upgrade case
+        if (!isFirstInstall
+                && !BraveMultiWindowUtils.isCheckUpgradeEnableMultiWindows()
+                && MultiWindowUtils.getInstanceCount(PersistedInstanceType.ACTIVE) > 1
+                && !BraveMultiWindowUtils.shouldEnableMultiWindows()) {
+            BraveMultiWindowUtils.setCheckUpgradeEnableMultiWindows(true);
+            BraveMultiWindowUtils.updateEnableMultiWindows(true);
+        } else if (!BraveMultiWindowUtils.isCheckUpgradeEnableMultiWindows()) {
+            BraveMultiWindowUtils.setCheckUpgradeEnableMultiWindows(true);
+        }
+
+        if (System.currentTimeMillis()
+                > ChromeSharedPreferences.getInstance()
+                        .readLong(BravePreferenceKeys.BRAVE_IN_APP_UPDATE_TIMING, 0)) {
+            checkAppUpdate();
+        }
+
+        if (!isFirstInstall
+                && !BravePrefServiceBridge.getInstance().getPlayYTVideoInBrowserEnabled()
+                && ChromeSharedPreferences.getInstance()
+                        .readBoolean(BravePreferenceKeys.OPEN_YT_IN_BRAVE_DIALOG, true)) {
+            openYtInBraveDialog();
+            ChromeSharedPreferences.getInstance()
+                    .writeBoolean(BravePreferenceKeys.OPEN_YT_IN_BRAVE_DIALOG, false);
+        }
+
+        // Quick search engines views changes
+        new KeyboardVisibilityHelper(BraveActivity.this, BraveActivity.this);
+        AppCompatEditText urlBar = findViewById(R.id.url_bar);
+        if (urlBar != null) {
+            urlBar.addTextChangedListener(
+                    new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(
+                                CharSequence s, int start, int count, int after) {}
+
+                        @Override
+                        public void onTextChanged(
+                                CharSequence query, int start, int before, int count) {
+                            if (query.toString().isEmpty()) {
+                                removeQuickActionSearchEnginesView();
+                            } else {
+                                if (getBraveToolbarLayout().isUrlBarFocused()
+                                        && KeyboardUtils.isAndroidSoftKeyboardShowing(urlBar)) {
+                                    View rootView = findViewById(android.R.id.content);
+                                    Rect r = new Rect();
+                                    rootView.getWindowVisibleDisplayFrame(r);
+                                    int screenHeight = rootView.getRootView().getHeight();
+                                    int visibleHeight = r.bottom;
+                                    int heightDifference = screenHeight - visibleHeight;
+                                    showQuickActionSearchEnginesView(heightDifference);
+                                } else {
+                                    removeQuickActionSearchEnginesView();
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {}
+                    });
+        }
+
+        ContextUtils.getAppSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+
+        // Clear only on a real cold start; otherwise a fold/unfold recreation would re-run
+        // this and wipe history/site data/cache mid-session. Use mIsColdStart (captured in
+        // initializeState()) since getSavedInstanceState() is already reset to null here.
+        if (isClearBrowsingDataOnExit() && mIsColdStart) {
+            int[] dataTypesArray =
+                    CollectionUtil.integerCollectionToIntArray(
+                            Arrays.asList(
+                                    BrowsingDataType.HISTORY,
+                                    BrowsingDataType.SITE_DATA,
+                                    BrowsingDataType.CACHE));
+            PostTask.postTask(
+                    TaskTraits.UI_DEFAULT,
+                    () -> {
+                        // Force-initialize ShortcutsBackend before clearing so that
+                        // OnHistoryDeletions reaches an initialized backend and correctly
+                        // removes omnibox shortcut suggestions.
+                        BraveShortcutsUtils.initThenRun(
+                                getCurrentProfile(),
+                                () ->
+                                        BrowsingDataBridge.getForProfile(getCurrentProfile())
+                                                .clearBrowsingData(
+                                                        this, dataTypesArray, TimePeriod.ALL_TIME));
+                    });
+        }
+    }
+
+    /**
+     * Returns the active Day Zero experiment variant, or {@link
+     * DayZeroHelper#DAY_ZERO_DEFAULT_VARIANT} when the stored one is unset or unknown to this
+     * build.
+     */
+    private String getDayZeroVariant() {
+        final String variant = DayZeroHelper.getDayZeroVariant();
+        // Filter out day zero variants different from A and B.
+        if (DayZeroHelper.DAY_ZERO_VARIANT_A.equals(variant)
+                || DayZeroHelper.DAY_ZERO_VARIANT_B.equals(variant)) {
+            return variant;
+        }
+        return DayZeroHelper.DAY_ZERO_DEFAULT_VARIANT;
+    }
+
+    private void enableSearchSuggestions() {
+        TemplateUrl defaultSearchEngineTemplateUrl =
+                BraveSearchEngineUtils.getTemplateUrlByShortName(
+                        getCurrentProfile(),
+                        BraveSearchEngineUtils.getDSEShortName(getCurrentProfile(), false));
+        if (defaultSearchEngineTemplateUrl != null
+                && BRAVE_SEARCH_ENGINE_KEYWORD.equals(
+                        defaultSearchEngineTemplateUrl.getKeyword())) {
+            UserPrefs.get(getCurrentProfile()).setBoolean(Pref.SEARCH_SUGGEST_ENABLED, true);
+        }
+    }
+
+    private void setInAppUpdateTiming() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.MONTH, MONTH_1);
+        ChromeSharedPreferences.getInstance()
+                .writeLong(
+                        BravePreferenceKeys.BRAVE_IN_APP_UPDATE_TIMING, calendar.getTimeInMillis());
+    }
+
+    private void completeUpdateSnackbar() {
+        Snackbar snackbar =
+                Snackbar.make(
+                                getResources().getString(R.string.in_app_update_text),
+                                new SnackbarController() {
+                                    @Override
+                                    public void onDismissNoAction(Object actionData) {}
+
+                                    @Override
+                                    public void onAction(Object actionData) {
+                                        if (mAppUpdateManager != null) {
+                                            mAppUpdateManager.completeUpdate();
+                                            mAppUpdateManager.unregisterListener(
+                                                    mInstallStateUpdatedListener);
+                                        }
+                                    }
+                                },
+                                Snackbar.TYPE_ACTION,
+                                Snackbar.UMA_UNKNOWN)
+                        .setAction(getResources().getString(R.string.update), null)
+                        .setDefaultLines(false)
+                        .setDuration(10000);
+        Tab currentTab = getActivityTabProvider().get();
+        if (currentTab != null) {
+            SnackbarManager snackbarManager =
+                    SnackbarManagerProvider.from(currentTab.getWindowAndroid());
+            snackbarManager.showSnackbar(snackbar);
+        }
+    }
+
+    private final InstallStateUpdatedListener mInstallStateUpdatedListener =
+            installState -> {
+                if (installState.installStatus() == InstallStatus.DOWNLOADED) {
+                    completeUpdateSnackbar();
+                }
+            };
+
+    private void checkAppUpdate() {
+        mAppUpdateManager = AppUpdateManagerFactory.create(BraveActivity.this);
+        mAppUpdateManager.registerListener(mInstallStateUpdatedListener);
+
+        Task<AppUpdateInfo> appUpdateInfoTask = mAppUpdateManager.getAppUpdateInfo();
+
+        appUpdateInfoTask.addOnSuccessListener(
+                appUpdateInfo -> {
+                    if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                        if (appUpdateInfo.updatePriority() >= 4 /* high priority */
+                                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                            startAppUpdateFlow(appUpdateInfo, AppUpdateType.IMMEDIATE);
+                        } else {
+                            startAppUpdateFlow(appUpdateInfo, AppUpdateType.FLEXIBLE);
+                        }
+                    }
+                });
+    }
+
+    private void startAppUpdateFlow(AppUpdateInfo appUpdateInfo, int appUpdateType) {
+        try {
+            mAppUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo, appUpdateType, BraveActivity.this, 1);
+            setInAppUpdateTiming();
+        } catch (IntentSender.SendIntentException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void openPlaylist(boolean shouldHandlePlaylistActivity) {
+        if (!shouldHandlePlaylistActivity) mIsDeepLink = true;
+
+        if (ChromeSharedPreferences.getInstance()
+                .readBoolean(PlaylistPreferenceUtils.SHOULD_SHOW_PLAYLIST_ONBOARDING, true)) {
+            PlaylistUtils.openPlaylistMenuOnboardingActivity(BraveActivity.this);
+            ChromeSharedPreferences.getInstance()
+                    .writeBoolean(PlaylistPreferenceUtils.SHOULD_SHOW_PLAYLIST_ONBOARDING, false);
+        } else if (shouldHandlePlaylistActivity) {
+            openPlaylistActivity(BraveActivity.this, ConstantUtils.ALL_PLAYLIST);
+        }
+    }
+
+    public void openPlaylistActivity(Context context, String playlistId) {
+        Intent playlistActivityIntent = new Intent(context, PlaylistHostActivity.class);
+        playlistActivityIntent.putExtra(ConstantUtils.PLAYLIST_ID, playlistId);
+        playlistActivityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        playlistActivityIntent.setAction(Intent.ACTION_VIEW);
+        context.startActivity(playlistActivityIntent);
+    }
+
+    private void showAdFreeCalloutDialog() {
+        ChromeSharedPreferences.getInstance()
+                .writeBoolean(BravePreferenceKeys.BRAVE_AD_FREE_CALLOUT_DIALOG, false);
+
+        BraveAdFreeCalloutDialogFragment braveAdFreeCalloutDialogFragment =
+                new BraveAdFreeCalloutDialogFragment();
+        braveAdFreeCalloutDialogFragment.show(
+                getSupportFragmentManager(), "BraveAdFreeCalloutDialogFragment");
+    }
+
+    public void setNewTabPageManager(NewTabPageManager manager) {
+        mNewTabPageManager = manager;
+    }
+
+    public void focusSearchBox() {
+        if (mNewTabPageManager != null) {
+            mNewTabPageManager.focusSearchBox(false, AutocompleteRequestType.SEARCH, false, null);
+        }
+    }
+
+    private void checkFingerPrintingOnUpgrade(boolean isFirstInstall) {
+        if (!isFirstInstall
+                && ChromeSharedPreferences.getInstance()
+                                .readInt(BravePreferenceKeys.BRAVE_APP_OPEN_COUNT)
+                        == 0) {
+            boolean value =
+                    ChromeSharedPreferences.getInstance()
+                            .readBoolean(BravePrivacySettings.PREF_FINGERPRINTING_PROTECTION, true);
+            if (value) {
+                BraveShieldsContentSettings.setShieldsValue(
+                        ProfileManager.getLastUsedRegularProfile(),
+                        "",
+                        BraveShieldsContentSettings.RESOURCE_IDENTIFIER_FINGERPRINTING,
+                        BraveShieldsContentSettings.DEFAULT,
+                        false);
+            } else {
+                BraveShieldsContentSettings.setShieldsValue(
+                        ProfileManager.getLastUsedRegularProfile(),
+                        "",
+                        BraveShieldsContentSettings.RESOURCE_IDENTIFIER_FINGERPRINTING,
+                        BraveShieldsContentSettings.ALLOW_RESOURCE,
+                        false);
+            }
+        }
+    }
+
+    public void openQuickSearchEnginesSettings() {
+        SettingsNavigation settingsLauncher = SettingsNavigationFactory.createSettingsNavigation();
+        settingsLauncher.startSettings(this, QuickSearchEnginesFragment.class);
+    }
+
+    public void openBravePlaylistSettings() {
+        SettingsNavigation settingsLauncher = SettingsNavigationFactory.createSettingsNavigation();
+        settingsLauncher.startSettings(this, BravePlaylistPreferences.class);
+    }
+
+    public void openBraveContentFilteringSettings() {
+        SettingsNavigation settingsLauncher = SettingsNavigationFactory.createSettingsNavigation();
+        settingsLauncher.startSettings(this, ContentFilteringFragment.class);
+    }
+
+    public int getBraveThemeBackgroundColor() {
+        return ContextUtils.getApplicationContext()
+                .getColor(R.color.toolbar_background_color_for_ntp);
+    }
+
+    public void openBraveCreateCustomFiltersSettings() {
+        SettingsNavigation settingsLauncher = SettingsNavigationFactory.createSettingsNavigation();
+        settingsLauncher.startSettings(this, CreateCustomFiltersFragment.class);
+    }
+
+    public MiscAndroidMetrics getMiscAndroidMetrics() {
+        return mMiscAndroidMetrics;
+    }
+
+    private boolean isNoRestoreState() {
+        return ChromeSharedPreferences.getInstance()
+                .readBoolean(BravePreferenceKeys.BRAVE_CLOSE_TABS_ON_EXIT, false);
+    }
+
+    private boolean isClearBrowsingDataOnExit() {
+        return ChromeSharedPreferences.getInstance()
+                .readBoolean(BravePreferenceKeys.BRAVE_CLEAR_ON_EXIT, false);
+    }
+
+    public void dismissShieldsTooltip() {
+        BraveToolbarLayoutImpl layout = getBraveToolbarLayout();
+        layout.dismissShieldsTooltip();
+    }
+
+    public Profile getCurrentProfile() {
+        Tab tab = getActivityTab();
+        if (tab == null) {
+            return ProfileManager.getLastUsedRegularProfile();
+        }
+
+        return Profile.fromWebContents(tab.getWebContents());
+    }
+
+    /** Close all tabs (including active tab) whose URL origin matches with a given origin. */
+    public void closeAllTabsByOrigin(@NonNull final String origin) {
+        final TabModel tabModel = getCurrentTabModel();
+
+        Set<Integer> tabIndexes = getTabIndexesByUrlOrigin(tabModel, origin);
+        for (Integer index : tabIndexes) {
+            Tab tab = tabModel.getTabAt(index);
+            if (tab != null) {
+                tab.setClosing(true);
+                tabModel.getTabRemover().closeTabs(TabClosureParams.closeTab(tab).build(), false);
+            }
+        }
+    }
+
+    /**
+     * Selects an existing tab if it matches a given origin, marks it as active and returns it.
+     *
+     * @return Active tab if it exists, {@code null} otherwise.
+     */
+    public Tab selectExistingUrlOriginTab(@NonNull final String origin) {
+        TabModel tabModel = getCurrentTabModel();
+        Set<Integer> tabIndexes = getTabIndexesByUrlOrigin(tabModel, origin);
+
+        // Find if tab exists, including tab already active.
+        if (!tabIndexes.isEmpty()) {
+            int index = tabIndexes.iterator().next();
+            Tab tab = tabModel.getTabAt(tabIndexes.iterator().next());
+            // Set active tab
+            tabModel.setIndex(index, TabSelectionType.FROM_USER);
+            return tab;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Find the {@link Tab} indexes whose URL starts with the specified base URL.
+     *
+     * @param model The {@link TabModel} to act on.
+     * @param origin The URL origin to search for.
+     * @return A set of indexes pointing to the matching {@link Tab}s or empty set if no matches are
+     *     found.
+     */
+    @NonNull
+    private static Set<Integer> getTabIndexesByUrlOrigin(
+            @NonNull final TabList model, @NonNull final String origin) {
+        final Set<Integer> result = new HashSet<>();
+        int count = model.getCount();
+
+        for (int i = 0; i < count; i++) {
+            if (model.getTabAt(i).getUrl().getOrigin().getSpec().contentEquals(origin)) {
+                result.add(i);
+            }
+        }
+        return result;
+    }
+
+    public Tab selectExistingTab(String url) {
+        Tab tab = getActivityTab();
+        if (tab != null && tab.getUrl().getSpec().equals(url)) {
+            return tab;
+        }
+
+        TabModel tabModel = getCurrentTabModel();
+        int tabIndex = TabModelUtils.getTabIndexByUrl(tabModel, url);
+
+        // Find if tab exists
+        if (tabIndex != TabModel.INVALID_TAB_INDEX) {
+            tab = tabModel.getTabAt(tabIndex);
+            // Set active tab
+            tabModel.setIndex(tabIndex, TabSelectionType.FROM_USER);
+            return tab;
+        } else {
+            return null;
+        }
+    }
+
+    public Tab openNewOrSelectExistingTab(String url, boolean refresh) {
+        Tab tab = selectExistingTab(url);
+        if (tab != null) {
+            if (refresh) {
+                tab.reload();
+            }
+            return tab;
+        } else { // Open a new tab
+            return getTabCreator(false).launchUrl(url, TabLaunchType.FROM_CHROME_UI);
+        }
+    }
+
+    public void openNewOrRefreshExistingTab(
+            @NonNull final String origin, @NonNull final String url) {
+        Tab tab = selectExistingUrlOriginTab(origin);
+        if (tab != null) {
+            tab.reload();
+        } else {
+            // Open a new tab.
+            getTabCreator(false).launchUrl(url, TabLaunchType.FROM_CHROME_UI);
+        }
+    }
+
+    public Tab openNewOrSelectExistingTab(String url) {
+        return openNewOrSelectExistingTab(url, false);
+    }
+
+    private void showBraveRateDialog() {
+        BraveRateDialogFragment rateDialogFragment = BraveRateDialogFragment.newInstance(false);
+        rateDialogFragment.show(getSupportFragmentManager(), BraveRateDialogFragment.TAG_FRAGMENT);
+    }
+
+    private void openYtInBraveDialog() {
+        OpenYtInBraveDialogFragment mOpenYtInBraveDialogFragment =
+                new OpenYtInBraveDialogFragment();
+        mOpenYtInBraveDialogFragment.show(
+                getSupportFragmentManager(), "OpenYtInBraveDialogFragment");
+    }
+
+    private static Activity getActivityOfType(Class<?> classOfActivity) {
+        for (Activity ref : ApplicationStatus.getRunningActivities()) {
+            if (!classOfActivity.isInstance(ref)) continue;
+
+            return ref;
+        }
+
+        return null;
+    }
+
+    /**
+     * @see BraveYouTubePictureInPictureController#onSessionRequested
+     */
+    public void onYouTubePictureInPictureRequested(final WebContents webContents) {
+        getYouTubePictureInPictureController().onSessionRequested(webContents);
+    }
+
+    /**
+     * @see BraveYouTubePictureInPictureController#onSessionEnterFailed
+     */
+    public void onYouTubePictureInPictureEnterFailed() {
+        getYouTubePictureInPictureController().onSessionEnterFailed();
+    }
+
+    /**
+     * @see BraveYouTubePictureInPictureController#isActive
+     */
+    public boolean isYouTubePictureInPictureActive() {
+        return getYouTubePictureInPictureController().isActive();
+    }
+
+    /**
+     * @see BraveYouTubePictureInPictureController#onFullscreenInterrupted
+     */
+    public void onYouTubePictureInPictureFullscreenInterrupted() {
+        getYouTubePictureInPictureController().onFullscreenInterrupted();
+    }
+
+    /**
+     * @see BraveYouTubePictureInPictureController#onNewTabDuringPictureInPicture
+     */
+    public void onYouTubePictureInPictureNewTab() {
+        getYouTubePictureInPictureController().onNewTabDuringPictureInPicture();
+    }
+
+    /**
+     * Applies a night-mode theme recreation from the controller while a YouTube PiP session was
+     * active. Exists as a shim because {@code super.onNightModeStateChanged()} is not reachable
+     * from the controller.
+     *
+     * @see BraveYouTubePictureInPictureController#maybeDeferNightModeRecreate
+     */
+    public void applyDeferredNightModeRecreate() {
+        super.onNightModeStateChanged();
+    }
+
+    /**
+     * Ensures the browsing layout is showing when a Brave-managed YouTube PiP session hands the UI
+     * back to the activity. The activity can be recreated into the tab switcher while the PiP
+     * window is up (e.g. a configuration change mid-session), and expanding the PiP must land the
+     * user on the video tab, not the switcher. Performs the same overview-to-browsing transition as
+     * upstream's {@code exitOverviewModeOnActorPiPExpand}, but implemented locally: that helper
+     * belongs to the actor (Glic) feature, which Brave keeps disabled, so depending on it would
+     * couple this flow to an API upstream may refactor away with the actor code.
+     */
+    public void exitOverviewModeForYouTubePictureInPicture() {
+        final LayoutManagerImpl layoutManager = getLayoutManagerSupplier().get();
+        if (isInOverviewMode() && layoutManager != null) {
+            layoutManager.showLayout(LayoutType.BROWSING, /* animate= */ false);
+        }
+    }
+
+    private BraveYouTubePictureInPictureController getYouTubePictureInPictureController() {
+        if (mYouTubePictureInPictureController == null) {
+            mYouTubePictureInPictureController = new BraveYouTubePictureInPictureController(this);
+        }
+        return mYouTubePictureInPictureController;
+    }
+
+    public static ChromeTabbedActivity getChromeTabbedActivity() {
+        return (ChromeTabbedActivity) getActivityOfType(ChromeTabbedActivity.class);
+    }
+
+    public static CustomTabActivity getCustomTabActivity() {
+        return (CustomTabActivity) getActivityOfType(CustomTabActivity.class);
+    }
+
+    @NonNull
+    public static BraveActivity getBraveActivity() throws BraveActivityNotFoundException {
+        BraveActivity activity = (BraveActivity) getActivityOfType(BraveActivity.class);
+        if (activity != null) {
+            return activity;
+        }
+
+        throw new BraveActivityNotFoundException("BraveActivity Not Found");
+    }
+
+    @NonNull
+    public static BraveActivity getBraveActivityFromTaskId(int taskId)
+            throws BraveActivityNotFoundException {
+
+        for (Activity ref : ApplicationStatus.getRunningActivities()) {
+            if (!BraveActivity.class.isInstance(ref) || ref.getTaskId() != taskId) continue;
+
+            return (BraveActivity) ref;
+        }
+
+        throw new BraveActivityNotFoundException("BraveActivity Not Found");
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null) {
+            String openUrl = intent.getStringExtra(BraveActivity.OPEN_URL);
+            if (!TextUtils.isEmpty(openUrl) && !BraveIntentHandler.isUrlUnsafe(openUrl)) {
+                try {
+                    openNewOrSelectExistingTab(openUrl);
+                } catch (NullPointerException e) {
+                    Log.e("BraveActivity", "opening new tab " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void performPreInflationStartup() {
+        super.performPreInflationStartup();
+        mRootUiCoordinator
+                .getIncognitoReauthControllerSupplier()
+                .onAvailable(irc -> mIncognitoReauthController = irc);
+    }
+
+    @Override
+    protected @LaunchIntentDispatcher.Action int maybeDispatchLaunchIntent(
+            Intent intent, Bundle savedInstanceState) {
+        boolean notificationUpdate = IntentUtils.safeGetBooleanExtra(
+                intent, BravePreferenceKeys.BRAVE_UPDATE_EXTRA_PARAM, false);
+        if (notificationUpdate) {
+            setUpdatePreferences();
+        }
+
+        return super.maybeDispatchLaunchIntent(intent, savedInstanceState);
+    }
+
+    private void setUpdatePreferences() {
+        Calendar currentTime = Calendar.getInstance();
+        long milliSeconds = currentTime.getTimeInMillis();
+
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                BravePreferenceKeys.BRAVE_NOTIFICATION_PREF_NAME, 0);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        editor.putLong(BravePreferenceKeys.BRAVE_MILLISECONDS_NAME, milliSeconds);
+        editor.apply();
+    }
+
+    public MonotonicObservableSupplier<BrowserControlsManager> getBrowserControlsManagerSupplier() {
+        return mBrowserControlsManagerSupplier;
+    }
+
+    @NativeMethods
+    interface Natives {
+        void restartStatsUpdater();
+        String getSafeBrowsingApiKey();
+    }
+
+    @Override
+    public void initMiscAndroidMetricsFromAWorkerThread() {
+        runOnUiThread(
+                () -> {
+                    initMiscAndroidMetrics();
+                });
+    }
+
+    private void initMiscAndroidMetrics() {
+        ThreadUtils.assertOnUiThread();
+        if (mMiscAndroidMetrics != null) {
+            return;
+        }
+        if (mMiscAndroidMetricsConnectionErrorHandler == null) {
+            mMiscAndroidMetricsConnectionErrorHandler =
+                    new MiscAndroidMetricsConnectionErrorHandler(this);
+        }
+
+        MiscAndroidMetricsFactory.getInstance()
+                .getMetricsService(mMiscAndroidMetricsConnectionErrorHandler)
+                .then(
+                        miscAndroidMetrics -> {
+                            mMiscAndroidMetrics = miscAndroidMetrics;
+                            mMiscAndroidMetrics.recordSetAsDefault(
+                                    BraveSetDefaultBrowserUtils.isAppSetAsDefaultBrowser(
+                                            BraveActivity.this));
+                            Intent launchIntent = getIntent();
+                            if (launchIntent != null
+                                    && Intent.ACTION_VIEW.equals(launchIntent.getAction())
+                                    && launchIntent.getData() != null) {
+                                mMiscAndroidMetrics.recordIntentUrl(
+                                        launchIntent.getData().toString());
+                            }
+                            if (mUsageMonitor == null) {
+                                mUsageMonitor = UsageMonitor.getInstance(mMiscAndroidMetrics);
+                            }
+                            mUsageMonitor.start();
+                        });
+    }
+
+    @Override
+    public void cleanUpMiscAndroidMetrics() {
+        if (mUsageMonitor != null) {
+            mUsageMonitor.stop();
+        }
+        if (mMiscAndroidMetrics != null) mMiscAndroidMetrics.close();
+        mMiscAndroidMetrics = null;
+    }
+
+    @NonNull
+    private BraveToolbarLayoutImpl getBraveToolbarLayout() {
+        BraveToolbarLayoutImpl layout = findViewById(R.id.toolbar);
+        assert layout != null;
+        return layout;
+    }
+
+    public void addOrEditBookmark(final Tab tabToBookmark) {
+        RateUtils.getInstance().setPrefAddedBookmarkCount();
+        ((TabBookmarker) mTabBookmarkerSupplier.get()).addOrEditBookmark(tabToBookmark);
+    }
+
+    public void showBookmarkManager(Profile profile, Tab currentTab) {
+        if (mBookmarkManagerOpenerSupplier.get() != null) {
+            mBookmarkManagerOpenerSupplier.get().showBookmarkManager(this, currentTab, profile);
+        }
+    }
+
+    // We call that method with an interval
+    // BraveSafeBrowsingApiHandler.SAFE_BROWSING_INIT_INTERVAL_MS,
+    // as upstream does, to keep the GmsCore process alive.
+    private void executeInitSafeBrowsing(long delay) {
+        // SafeBrowsingBridge.getSafeBrowsingState() has to be executed on a main thread
+        PostTask.postDelayedTask(
+                TaskTraits.UI_DEFAULT,
+                () -> {
+                    SafeBrowsingBridge safeBrowsingBridge =
+                            new SafeBrowsingBridge(getCurrentProfile());
+                    if (safeBrowsingBridge.getSafeBrowsingState()
+                            != SafeBrowsingState.NO_SAFE_BROWSING) {
+                        // initSafeBrowsing could be executed on a background thread
+                        PostTask.postTask(
+                                TaskTraits.USER_VISIBLE_MAY_BLOCK,
+                                () -> {
+                                    BraveSafeBrowsingApiHandler.getInstance().initSafeBrowsing();
+                                });
+                    }
+                    executeInitSafeBrowsing(
+                            BraveSafeBrowsingApiHandler.SAFE_BROWSING_INIT_INTERVAL_MS);
+                },
+                delay);
+    }
+
+    public void updateBottomSheetPosition(int orientation) {
+        if (BottomToolbarConfiguration.isBraveBottomControlsEnabled()) {
+            // Ensure the bottom sheet's container is adjusted to the height of the bottom toolbar.
+            ViewGroup sheetContainer = findViewById(R.id.sheet_container);
+            assert sheetContainer != null;
+
+            if (sheetContainer != null) {
+                CoordinatorLayout.LayoutParams params =
+                        (CoordinatorLayout.LayoutParams) sheetContainer.getLayoutParams();
+                params.bottomMargin =
+                        orientation == Configuration.ORIENTATION_LANDSCAPE
+                                ? 0
+                                : getResources()
+                                        .getDimensionPixelSize(R.dimen.brave_bottom_toolbar_height);
+                sheetContainer.setLayoutParams(params);
+            }
+        }
+    }
+
+    /**
+     * Calls to {@link ChromeTabbedActivity#maybeHandleUrlIntent} will be redirected here via
+     * bytecode changes.
+     */
+    public boolean maybeHandleUrlIntent(Intent intent) {
+        String appLinkAction = intent.getAction();
+        Uri appLinkData = intent.getData();
+
+        if (Intent.ACTION_VIEW.equals(appLinkAction) && appLinkData != null) {
+            String lastPathSegment = appLinkData.getLastPathSegment();
+            if (lastPathSegment != null
+                    && lastPathSegment.equalsIgnoreCase(BraveConstants.DEEPLINK_ANDROID_PLAYLIST)) {
+                return false;
+            }
+        }
+        // Call ChromeTabbedActivity's version.
+        return (boolean)
+                BraveReflectionUtil.invokeMethod(
+                        ChromeTabbedActivity.class,
+                        this,
+                        "maybeHandleUrlIntent",
+                        Intent.class,
+                        intent);
+    }
+
+    public RootUiCoordinator getRootUiCoordinator() {
+        return mRootUiCoordinator;
+    }
+
+    public MultiInstanceManager getMultiInstanceManager() {
+        return (MultiInstanceManager)
+                BraveReflectionUtil.getField(
+                        ChromeTabbedActivity.class, "mMultiInstanceManager", this);
+    }
+
+    /**
+     * Removes the browser's tasks from the Recents screen. Terminating only finishes the activities
+     * and kills the process, which leaves the task behind, so Brave still looks like it is running
+     * after the user chose to exit.
+     */
+    private void removeTasksFromRecents() {
+        // Activity#finishAndRemoveTask() is preferred for this instance because it sets
+        // isFinishing() synchronously, see MultiInstanceManagerApi31#closeInstance. AppTask covers
+        // the remaining windows, including those whose activity is no longer loaded.
+        finishAndRemoveTask();
+        final ActivityManager activityManager =
+                (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        if (activityManager == null) {
+            return;
+        }
+        for (ActivityManager.AppTask task : activityManager.getAppTasks()) {
+            task.finishAndRemoveTask();
+        }
+    }
+
+    private void exitBrave() {
+        LayoutInflater inflater =
+                (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.brave_exit_confirmation, null);
+        DialogInterface.OnClickListener onClickListener =
+                (dialog, button) -> {
+                    if (button == AlertDialog.BUTTON_POSITIVE) {
+                        removeTasksFromRecents();
+                        ApplicationLifetime.terminate(false);
+                    } else {
+                        dialog.dismiss();
+                    }
+                };
+
+        AlertDialog.Builder alert =
+                new AlertDialog.Builder(this, R.style.ThemeOverlay_BrowserUI_AlertDialog);
+        AlertDialog alertDialog =
+                alert.setTitle(R.string.menu_exit)
+                        .setView(view)
+                        .setPositiveButton(R.string.brave_action_yes, onClickListener)
+                        .setNegativeButton(R.string.brave_action_no, onClickListener)
+                        .create();
+        alertDialog.getDelegate().setHandleNativeActionModesEnabled(false);
+        alertDialog.show();
+    }
+
+    @Override
+    public void shredSiteData() {
+        Tab currentTab = getActivityTab();
+        if (currentTab != null) {
+            shredData(currentTab);
+        }
+    }
+
+    @Override
+    public boolean isShredButtonVisible() {
+        return mIncognitoReauthController == null
+                || !mIncognitoReauthController.isIncognitoReauthPending();
+    }
+
+    @Override
+    public void setShredButtonVisibilityObserver(
+            IncognitoReauthManager.IncognitoReauthCallback callback) {
+        if (mIncognitoReauthController == null) {
+            return;
+        }
+        mIncognitoReauthController.addIncognitoReauthCallback(callback);
+    }
+
+    @Override
+    public void removeShredButtonVisibilityObserver(
+            IncognitoReauthManager.IncognitoReauthCallback callback) {
+        if (mIncognitoReauthController == null) {
+            return;
+        }
+        mIncognitoReauthController.removeIncognitoReauthCallback(callback);
+    }
+
+    private void shredData(Tab currentTab) {
+        LayoutInflater inflater =
+                (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.brave_shred_data_confirmation, null);
+        DialogInterface.OnClickListener onClickListener =
+                (dialog, button) -> {
+                    if (button == AlertDialog.BUTTON_POSITIVE) {
+                        FirstPartyStorageCleanerAnimationFragment.show(BraveActivity.this);
+                        BraveFirstPartyStorageCleanerUtils.cleanupTLDFirstPartyStorage(currentTab);
+                    } else {
+                        dialog.dismiss();
+                    }
+                };
+        GURL lastCommittedUrl = currentTab.getWebContents().getLastCommittedUrl();
+        TextView confirmationTextView =
+                view.findViewById(R.id.brave_shred_data_confirmation_dialog);
+        confirmationTextView.setText(
+                getString(
+                        R.string.brave_shred_data_confirmation,
+                        lastCommittedUrl.getOrigin().getSpec()));
+
+        AlertDialog.Builder alert =
+                new AlertDialog.Builder(this, R.style.ThemeOverlay_BrowserUI_AlertDialog);
+        AlertDialog alertDialog =
+                alert.setTitle(R.string.brave_shred_data_dialog_title)
+                        .setView(view)
+                        .setPositiveButton(
+                                R.string.brave_shred_data_dialog_ok_button_text, onClickListener)
+                        .setNegativeButton(R.string.brave_cancel, onClickListener)
+                        .create();
+        alertDialog.getDelegate().setHandleNativeActionModesEnabled(false);
+        alertDialog.show();
+    }
+
+    /*
+     * Whether we want to pretend to be a custom tab. May be usefull to avoid certain patches,
+     * when we want to have the same behaviour as in custom tabs.
+     */
+    public void spoofCustomTab(boolean spoof) {
+        mSpoofCustomTab = spoof;
+    }
+
+    @Override
+    public boolean isCustomTab() {
+        if (mSpoofCustomTab) {
+            return true;
+        }
+
+        return super.isCustomTab();
+    }
+
+    public void showQuickActionSearchEnginesView(int keypadHeight) {
+        if (mQuickSearchEnginesView != null
+                || !QuickSearchEnginesUtil.getQuickSearchEnginesFeature()) {
+            return;
+        }
+        mQuickSearchEnginesView =
+                getLayoutInflater().inflate(R.layout.quick_search_engines_view, null);
+        RecyclerView recyclerView =
+                (RecyclerView)
+                        mQuickSearchEnginesView.findViewById(
+                                R.id.quick_search_engines_recyclerview);
+        LinearLayoutManager linearLayoutManager =
+                new LinearLayoutManager(BraveActivity.this, LinearLayoutManager.HORIZONTAL, false);
+        recyclerView.setLayoutManager(linearLayoutManager);
+
+        ImageView quickSearchEnginesSettings =
+                (ImageView)
+                        mQuickSearchEnginesView.findViewById(R.id.quick_search_engines_settings);
+        quickSearchEnginesSettings.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openQuickSearchEnginesSettings();
+                    }
+                });
+
+        Runnable onQuickSearchEnginesReady =
+                () -> {
+                    if (isActivityFinishingOrDestroyed()) return;
+
+                    quickSearchEnginesReady(recyclerView, keypadHeight);
+                };
+        TemplateUrlServiceFactory.getForProfile(getCurrentProfile())
+                .runWhenLoaded(onQuickSearchEnginesReady);
+    }
+
+    private void quickSearchEnginesReady(RecyclerView recyclerView, int keypadHeight) {
+        Profile profile = getCurrentProfile();
+        List<QuickSearchEnginesModel> searchEngines =
+                QuickSearchEnginesUtil.getQuickSearchEnginesForView(profile);
+
+        QuickSearchEnginesModel defaultQuickSearchEnginesModel =
+                QuickSearchEnginesUtil.getDefaultSearchEngine(profile);
+        searchEngines.add(0, defaultQuickSearchEnginesModel);
+
+        QuickSearchEnginesViewAdapter adapter =
+                new QuickSearchEnginesViewAdapter(searchEngines, this);
+        recyclerView.setAdapter(adapter);
+        if (mQuickSearchEnginesView.getParent() == null) {
+            WindowManager.LayoutParams params =
+                    new WindowManager.LayoutParams(
+                            WindowManager.LayoutParams.MATCH_PARENT,
+                            WindowManager.LayoutParams.WRAP_CONTENT,
+                            WindowManager.LayoutParams.TYPE_APPLICATION_PANEL,
+                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                            WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            params.gravity = Gravity.BOTTOM;
+            params.y = keypadHeight; // Position the view above the keyboard
+
+            WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            windowManager.addView(mQuickSearchEnginesView, params);
+        }
+    }
+
+    public void removeQuickActionSearchEnginesView() {
+        if (mQuickSearchEnginesView != null && mQuickSearchEnginesView.getParent() != null) {
+            WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            windowManager.removeView(mQuickSearchEnginesView);
+            mQuickSearchEnginesView = null;
+        }
+    }
+
+    // QuickSearchCallback
+    @Override
+    public void onSearchEngineClick(int position, QuickSearchEnginesModel quickSearchEnginesModel) {
+        if (mMiscAndroidMetrics != null) {
+            mMiscAndroidMetrics.recordQuickSearch(false, quickSearchEnginesModel.getKeyword());
+        }
+        if (getActivityTab() == null) {
+            return;
+        }
+        String query = getBraveToolbarLayout().getLocationBarQuery();
+        String quickSearchEngineUrl =
+                GOOGLE_SEARCH_ENGINE_KEYWORD.equals(quickSearchEnginesModel.getKeyword())
+                        ? QuickSearchEnginesUtil.GOOGLE_SEARCH_ENGINE_URL
+                        : quickSearchEnginesModel.getUrl();
+        String searchUrl =
+                quickSearchEngineUrl
+                        .replace("{searchTerms}", query)
+                        .replace("{inputEncoding}", "UTF-8");
+
+        final String quickSearchVariation;
+        if (mDayZeroVariant != null && mDayZeroVariant.equals(DayZeroHelper.DAY_ZERO_VARIANT_A)) {
+            // Control variant.
+            quickSearchVariation = "-c";
+        } else if (mDayZeroVariant != null
+                && mDayZeroVariant.equals(DayZeroHelper.DAY_ZERO_VARIANT_B)) {
+            // Test variant.
+            quickSearchVariation = "-t";
+        } else {
+            // Default.
+            quickSearchVariation = "";
+        }
+        // Tells the Brave search backend the query started from the quick search bar.
+        // Leaves any other engine's URL untouched.
+        searchUrl =
+                BraveIntentHandler.maybeReplaceBraveSearchSource(
+                        searchUrl, BraveIntentHandler.ANDROID_QUICK_SEARCH + quickSearchVariation);
+        getActivityTab().loadUrl(new LoadUrlParams(searchUrl));
+        getBraveToolbarLayout().clearOmniboxFocus();
+    }
+
+    @Override
+    public void loadSearchEngineLogo(
+            ImageView logoView, QuickSearchEnginesModel quickSearchEnginesModel) {
+        QuickSearchEnginesUtil.loadSearchEngineLogo(
+                getCurrentProfile(), logoView, quickSearchEnginesModel.getKeyword());
+    }
+
+    @Override
+    public void onKeyboardOpened(int keyboardHeight) {
+        runOnUiThread(
+                () -> {
+                    if (!isFinishing()
+                            && !isDestroyed()
+                            && getBraveToolbarLayout().isUrlBarFocused()
+                            && !getBraveToolbarLayout().getLocationBarQuery().isEmpty()) {
+                        showQuickActionSearchEnginesView(keyboardHeight);
+                    }
+                });
+    }
+
+    @Override
+    public void onKeyboardClosed() {
+        removeQuickActionSearchEnginesView();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(
+            SharedPreferences sharedPreferences, @Nullable String key) {
+        if (ChromePreferenceKeys.TOOLBAR_TOP_ANCHORED.equals(key)) {
+            // Upstream moves the address bar live. Only Brave's bottom controls, which the bottom
+            // bar replaces, are built once per run.
+            if (BottomToolbarConfiguration.isAndroidBottomBarEnabled()) return;
+            Activity currentActivity = ApplicationStatus.getLastTrackedFocusedActivity();
+            if (currentActivity == null) {
+                currentActivity = this;
+            }
+            BraveRelaunchUtils.askForRelaunch(currentActivity);
+        }
+    }
+
+    @Override
+    public void onNewIntentWithNative(Intent intent) {
+        // If intent comes from our own package, check if we need to redirect upstream's urls (for
+        // help, support, etc.).
+        if (intent != null
+                && intent.getAction() != null
+                && Intent.ACTION_VIEW.equals(intent.getAction())
+                && intent.getPackage() != null
+                && intent.getPackage().equals(getPackageName())) {
+            String url = IntentHandler.getUrlFromIntent(intent);
+            if (url != null) {
+                if (url.equals(BraveIntentHandler.CONNECTION_INFO_HELP_URL)) {
+                    intent.setData(Uri.parse(BraveIntentHandler.BRAVE_CONNECTION_INFO_HELP_URL));
+                } else if (url.equals(BraveIntentHandler.FALLBACK_SUPPORT_URL)) {
+                    intent.setData(Uri.parse(BraveIntentHandler.BRAVE_FALLBACK_SUPPORT_URL));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onTabStateInitializedHandler() {
+        // NO_RESTORE_STATE is a process-global sticky switch. Remove it here so a later
+        // fold/unfold recreation does not re-run ChromeTabbedActivity.clearState() and wipe
+        // the session. Safe: both readers (CTA#initializeState, which consumes it before the
+        // async onTabStateInitialized, and IncognitoRestoreAppLaunchDrawBlocker) run earlier.
+        CommandLine.getInstance().removeSwitch(ChromeSwitches.NO_RESTORE_STATE);
+
+        Profile profile = getCurrentProfile();
+        if (profile != null && mIsColdStart && !mAppCloseShredTriggered) {
+            // Schedule the first-party storage cleanup only on a real cold start; on a
+            // fold/unfold recreation it would shred and close every APP_EXIT ("App close")
+            // tab mid-session. One-shot guard so it runs at most once per cold start.
+            mAppCloseShredTriggered = true;
+            BraveFirstPartyStorageCleanerUtils.triggerCurrentAppStateNotification(profile);
+        }
+    }
+}

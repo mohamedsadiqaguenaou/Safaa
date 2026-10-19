@@ -1,0 +1,68 @@
+// Copyright (c) 2025 The Brave Authors. All rights reserved.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this file,
+// You can obtain one at https://mozilla.org/MPL/2.0/.
+
+#include "brave/browser/android/brave_tab_features.h"
+
+#include "base/feature_list.h"
+#include "brave/browser/image_metadata_stripper/file_upload_controller.h"
+#include "brave/browser/misc_metrics/captcha_metrics.h"
+#include "brave/browser/misc_metrics/page_metrics_tab_helper.h"
+#include "brave/components/image_metadata_stripper/common/features.h"
+#include "brave/components/misc_metrics/features.h"
+#include "chrome/browser/profiles/profile.h"
+#include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/web_contents.h"
+
+namespace tabs {
+
+BraveTabFeatures::BraveTabFeatures(content::WebContents* web_contents,
+                                   Profile* profile)
+    : TabFeatures_Chromium(web_contents, profile) {
+  // Clients should rely on this for observing web contents based changes.
+  tabs::TabInterface& tab_interface =
+      *TabInterface::GetFromContents(web_contents);
+
+  if (base::FeatureList::IsEnabled(
+          misc_metrics::features::kCaptchaMetricsCollection)) {
+    cloudflare_js_detection_tab_helper_ = misc_metrics::CaptchaMetrics::
+        CloudflareJsDetectionTabHelper::MaybeCreate(tab_interface);
+  }
+
+  if (base::FeatureList::IsEnabled(
+          image_metadata_stripper::features::kStripImageMetadataV1)) {
+    stripper_upload_controller_ =
+        image_metadata_stripper::FileUploadController::MaybeCreate(
+            tab_interface);
+  }
+
+  page_metrics_tab_helper_ =
+      std::make_unique<misc_metrics::PageMetricsTabHelper>(tab_interface);
+}
+
+BraveTabFeatures::~BraveTabFeatures() = default;
+
+TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile)
+    : brave_tab_features_(
+          std::make_unique<BraveTabFeatures>(web_contents, profile)) {}
+
+TabFeatures::~TabFeatures() = default;
+
+NewTabPagePreloadPipelineManager*
+TabFeatures::new_tab_page_preload_pipeline_manager() {
+  return brave_tab_features_->new_tab_page_preload_pipeline_manager();
+}
+
+enterprise_data_protection::DataProtectionNavigationController*
+TabFeatures::data_protection_controller() {
+  return brave_tab_features_->data_protection_controller();
+}
+
+// static
+BraveTabFeatures* BraveTabFeatures::FromTabFeatures(TabFeatures* tab_features) {
+  return static_cast<BraveTabFeatures*>(
+      tab_features->brave_tab_features_.get());
+}
+
+}  // namespace tabs
