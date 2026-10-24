@@ -19,7 +19,7 @@ declare_args() {
   sparkle_eddsa_private_key = ""
   sparkle_eddsa_public_key = ""
 
-  brave_product_name = "brave"
+  brave_product_name = "safaa"
   brave_exe = ""
   target_android_output_format = ""
   brave_android_keystore_path = "."
@@ -68,15 +68,17 @@ if (brave_exe == "") {
 
 brave_dist_dir = "$root_out_dir/dist"
 
-# Use different installer/product names for Brave Origin
+# Use different installer/product names for Brave Origin.
 if (is_brave_origin_branded) {
   _product_brand = "Origin"
+  _installer_brand = "BraveOrigin"
   brave_dist_name = "brave-origin"
   brave_linux_package_name = "brave-origin"
 } else {
   _product_brand = "Browser"
-  brave_dist_name = "brave"
-  brave_linux_package_name = "brave-browser"
+  _installer_brand = "Safaa"
+  brave_dist_name = "safaa-browser"
+  brave_linux_package_name = "safaa-browser"
 }
 
 if (is_win) {
@@ -91,7 +93,7 @@ if (is_win) {
   if (is_brave_origin_branded) {
     brave_app_guid = "{F1EF32DE-F987-4289-81D2-6C4780027F9B}"
   } else {
-    brave_app_guid = "{AFE6A462-C574-4B8A-AF43-4CC60DF4563B}"
+    brave_app_guid = "{5C98B01E-F302-4A29-9186-9F571718172B}"
   }
   if (brave_channel == "nightly") {
     # Temporary support PR's non-Release builds on nightly channel.
@@ -133,19 +135,19 @@ if (is_win) {
   }
 
   brave_installer_exe = "brave_installer.exe"
-  brave_stub_installer_exe = "Brave$_product_brand$_channel" +
+  brave_stub_installer_exe = "$_installer_brand$_channel" +
                              "Setup$_arch$brave_underline_full_version.exe"
   brave_untagged_stub_installer_exe =
-      "Brave${_product_brand}Untagged$_channel" +
+      "${_installer_brand}Untagged$_channel" +
       "Setup$_arch$brave_underline_full_version.exe"
   brave_standalone_installer_exe =
-      "Brave${_product_brand}Standalone$_channel" +
+      "${_installer_brand}Standalone$_channel" +
       "Setup$_arch$brave_underline_full_version.exe"
   brave_silent_installer_exe =
-      "Brave${_product_brand}StandaloneSilent$_channel" +
+      "${_installer_brand}StandaloneSilent$_channel" +
       "Setup$_arch$brave_underline_full_version.exe"
   brave_untagged_installer_exe =
-      "Brave${_product_brand}StandaloneUntagged$_channel" +
+      "${_installer_brand}StandaloneUntagged$_channel" +
       "Setup$_arch$brave_underline_full_version.exe"
 } else if (is_mac) {
   brave_exe = "$chrome_product_full_name.app"
