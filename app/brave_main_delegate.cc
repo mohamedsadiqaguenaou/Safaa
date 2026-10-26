@@ -166,7 +166,7 @@ void BraveMainDelegate::PreSandboxStartup() {
 #if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_MAC)
   base::PathService::OverrideAndCreateIfNeeded(
       chrome::DIR_POLICY_FILES,
-      base::FilePath(FILE_PATH_LITERAL("/etc/brave/policies")), true, false);
+      base::FilePath(FILE_PATH_LITERAL("/etc/safaa/policies")), true, false);
 #endif
 
 #if BUILDFLAG(IS_LINUX)

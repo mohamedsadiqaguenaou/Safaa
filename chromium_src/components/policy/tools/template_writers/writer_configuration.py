@@ -38,7 +38,7 @@ _BRAVE_VALUES = {
         },
     },
     'admx_prefix': 'brave',
-    'linux_policy_path': '/etc/brave/policies/',
+    'linux_policy_path': '/etc/safaa/policies/',
     'bundle_id': 'com.brave.ios.core',
 }
 

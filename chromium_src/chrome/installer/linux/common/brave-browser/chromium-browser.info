@@ -9,13 +9,13 @@
 PACKAGE="safaa-browser"
 
 # Filename of the main executable (for generating launcher scripts, etc.)
-PROGNAME=brave
+PROGNAME=safaa
 
 # Base directory for package installation.
 INSTALLDIR=/opt/safaa/safaa-browser
 
 # Directory for device policy enrollments.
-ENROLLMENTDIR=/etc/brave/policies/enrollment
+ENROLLMENTDIR=/etc/safaa/policies/enrollment
 
 # Display string for desktop menu/icon.
 MENUNAME="Safaa Browser"

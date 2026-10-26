@@ -17,7 +17,7 @@ group("brave") {
 copy("copy_exe") {
   sources = [ "$root_out_dir/chrome" ]
 
-  outputs = [ "$root_out_dir/brave" ]
+  outputs = [ "$root_out_dir/$brave_exe" ]
 
   deps = [ "//chrome:chrome_initial" ]
 }
@@ -25,7 +25,7 @@ copy("copy_exe") {
 copy("copy_sandbox") {
   sources = [ "$root_out_dir/chrome_sandbox" ]
 
-  outputs = [ "$root_out_dir/brave_sandbox" ]
+  outputs = [ "$root_out_dir/${brave_exe}_sandbox" ]
 
   deps = [ "//sandbox/linux:chrome_sandbox" ]
 }

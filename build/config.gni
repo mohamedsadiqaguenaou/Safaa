@@ -19,7 +19,13 @@ declare_args() {
   sparkle_eddsa_private_key = ""
   sparkle_eddsa_public_key = ""
 
-  brave_product_name = "brave"
+  # Name of the browser executable. On Linux it is safaa, so the browser
+  # runs as Safaa (see //brave/build/linux:copy_exe).
+  if (is_linux) {
+    brave_product_name = "safaa"
+  } else {
+    brave_product_name = "brave"
+  }
   brave_exe = ""
   target_android_output_format = ""
   brave_android_keystore_path = "."

@@ -25,9 +25,9 @@ index 2a75b4c07d1e744209f9c48e375d14f2820d6cd7..9714f6de66fbc8de830a6b7e28b9dc56
    binary_input = "$root_out_dir/chrome"
    deps = [ "//chrome" ]
 +  deps += strip_chrome_binary_deps
-+  binary_input = "$root_out_dir/brave"
-+  symbol_output = "$root_out_dir/brave.debug"
-+  stripped_binary_output = "$root_out_dir/brave.stripped"
++  binary_input = "$root_out_dir/$brave_exe"
++  symbol_output = "$root_out_dir/$brave_exe.debug"
++  stripped_binary_output = "$root_out_dir/$brave_exe.stripped"
  }
  
  strip_binary("strip_chrome_crashpad_handler") {
@@ -36,9 +36,9 @@ index 2a75b4c07d1e744209f9c48e375d14f2820d6cd7..9714f6de66fbc8de830a6b7e28b9dc56
    binary_input = "$root_out_dir/chrome_sandbox"
    deps = [ "//sandbox/linux:chrome_sandbox" ]
 +  deps += strip_chrome_sandbox_deps
-+  binary_input = "$root_out_dir/brave_sandbox"
-+  symbol_output = "$root_out_dir/brave_sandbox.debug"
-+  stripped_binary_output = "$root_out_dir/brave_sandbox.stripped"
++  binary_input = "$root_out_dir/${brave_exe}_sandbox"
++  symbol_output = "$root_out_dir/${brave_exe}_sandbox.debug"
++  stripped_binary_output = "$root_out_dir/${brave_exe}_sandbox.stripped"
  }
  
  # On ChromeOS, system services depend on real ANGLE libraries rather than dummy
