@@ -29,7 +29,7 @@ bool IsAnyBraveBrowserDefaultBrowser() {
 #if BUILDFLAG(IS_BRAVE_ORIGIN_BRANDED)
   return browser.find("brave-origin") != std::string::npos;
 #else
-  return browser.find("brave-browser") != std::string::npos;
+  return browser.find("safaa-browser") != std::string::npos;
 #endif
 }
 

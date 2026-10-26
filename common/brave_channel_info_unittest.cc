@@ -38,7 +38,11 @@ TEST(BraveChannelInfoTest, ChannelByNameTest) {
 TEST(BraveChannelInfoTest, ParentDirectoryOfUserDataDirectoryTest) {
   base::FilePath path;
   EXPECT_TRUE(chrome::GetDefaultUserDataDirectory(&path));
+#if BUILDFLAG(IS_BRAVE_ORIGIN_BRANDED)
   EXPECT_EQ("BraveSoftware", path.DirName().BaseName().AsUTF8Unsafe());
+#else
+  EXPECT_EQ("Safaa", path.DirName().BaseName().AsUTF8Unsafe());
+#endif
 }
 
 TEST(BraveChannelInfoTest, DefaultUserDataDirectoryAndChannelTest) {
@@ -47,7 +51,7 @@ TEST(BraveChannelInfoTest, DefaultUserDataDirectoryAndChannelTest) {
 #if BUILDFLAG(IS_BRAVE_ORIGIN_BRANDED)
   constexpr char kProduct[] = "Brave-Origin";
 #else
-  constexpr char kProduct[] = "Brave-Browser";
+  constexpr char kProduct[] = "Safaa-Browser";
 #endif
 
 #if defined(OFFICIAL_BUILD)

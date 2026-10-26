@@ -3,16 +3,16 @@
 .TH @@PACKAGE 1 "" "" "USER COMMANDS"
 
 .SH NAME
-@@PACKAGE \- Brave Browser
+@@PACKAGE \- Safaa Browser
 
 .SH SYNOPSIS
 .B @@PACKAGE
 [\fIOPTION\fR] [\fIPATH\fR|\fIURL\fR]
 
 .SH DESCRIPTION
-See the Brave Help Center for help on using the browser.
+See the Safaa website for help on using the browser.
 .IP
-<https://support.brave.app/>
+<https://safaabrowser.com/>
 .PP
 This manpage only describes invocation, environment, and arguments.
 
@@ -24,7 +24,7 @@ stable flags.
 \fB\-\-user\-data\-dir\fR=\fIDIR\fR
 Specifies the directory that user data (your "profile") is kept in.
 Defaults to
-.I $HOME/.config/@@PACKAGE .
+.I $HOME/.config/Safaa/Safaa-Browser .
 Separate instances of @@MENUNAME must use separate user data directories;
 repeated invocations of @@PACKAGE will reuse an existing process for
 a given user data directory.
@@ -150,21 +150,20 @@ Comma separated list of hosts or patterns to bypass proxying.
 
 .SH FILES
 .TP
-.I $HOME/.config/@@PACKAGE
+.I $HOME/.config/Safaa/Safaa-Browser
 Default directory for configuration data.
 
 .TP
-.I $HOME/.cache/@@PACKAGE
+.I $HOME/.cache/Safaa/Safaa-Browser
 Default directory for cache data.  (Why?  See
 <http://standards.freedesktop.org/basedir-spec/latest/> .)
 
 .SH BUGS
 Bug tracker:
 .IP
-https://github.com/brave/brave-browser/issues/
+https://github.com/mohamedsadiqaguenaou/Safaa/issues
 .PP
-Be sure to do your search within "All Issues" before reporting bugs,
-and be sure to pick the "Defect on Linux" template when filing a new one.
+Search the existing issues before reporting a bug.
 
 .SH AUTHOR
-Brave Software \- <https://brave.com/>
+Safaa Browser \- <https://safaabrowser.com/>

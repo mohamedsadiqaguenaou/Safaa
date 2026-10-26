@@ -76,7 +76,7 @@ if (is_brave_origin_branded) {
 } else {
   _product_brand = "Browser"
   brave_dist_name = "brave"
-  brave_linux_package_name = "brave-browser"
+  brave_linux_package_name = "safaa-browser"
 }
 
 if (is_win) {

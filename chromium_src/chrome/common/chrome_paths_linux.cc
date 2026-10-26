@@ -12,9 +12,9 @@
 
 namespace {
 
-// Brave doesn't use CHROME_CONFIG_HOME or Google Chrome's directory names; it
-// always lives under BraveSoftware, with a channel-specific suffix and a
-// separate name when Brave Origin branded.
+// Safaa doesn't use CHROME_CONFIG_HOME or Google Chrome's directory names; it
+// always lives under Safaa, with a channel-specific suffix, so it never shares
+// a profile with Brave. Brave Origin keeps its BraveSoftware directory.
 bool BraveGetDefaultUserDataDirectory(base::FilePath* result) {
   auto env = base::Environment::Create();
   base::FilePath config_dir = base::nix::GetXDGDirectory(
@@ -26,7 +26,7 @@ bool BraveGetDefaultUserDataDirectory(base::FilePath* result) {
 #if BUILDFLAG(IS_BRAVE_ORIGIN_BRANDED)
   *result = config_dir.Append("BraveSoftware/Brave-Origin" + data_dir_suffix);
 #else
-  *result = config_dir.Append("BraveSoftware/Brave-Browser" + data_dir_suffix);
+  *result = config_dir.Append("Safaa/Safaa-Browser" + data_dir_suffix);
 #endif
   return true;
 }

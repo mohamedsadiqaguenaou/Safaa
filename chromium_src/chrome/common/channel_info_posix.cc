@@ -75,13 +75,13 @@ std::string GetDesktopName(base::Environment* env) {
 #else   // BUILDFLAG(IS_BRAVE_ORIGIN_BRANDED)
   switch (product_channel) {
     case version_info::Channel::DEV:
-      return "brave-browser-dev.desktop";
+      return "safaa-browser-dev.desktop";
     case version_info::Channel::BETA:
-      return "brave-browser-beta.desktop";
+      return "safaa-browser-beta.desktop";
     case version_info::Channel::CANARY:
-      return "brave-browser-nightly.desktop";
+      return "safaa-browser-nightly.desktop";
     default:
-      return "brave-browser.desktop";
+      return "safaa-browser.desktop";
   }
 #endif  // BUILDFLAG(IS_BRAVE_ORIGIN_BRANDED)
 #else   // defined(OFFICIAL_BUILD)
@@ -92,7 +92,7 @@ std::string GetDesktopName(base::Environment* env) {
       !name.empty()) {
     return name;
   }
-  return "brave-browser.desktop";
+  return "safaa-browser.desktop";
 #endif
 }
 #endif  // BUILDFLAG(IS_LINUX)

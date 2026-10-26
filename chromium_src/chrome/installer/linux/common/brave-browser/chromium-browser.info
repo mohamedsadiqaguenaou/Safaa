@@ -6,29 +6,29 @@
 # chromium-browser packages for various platforms.
 
 # Base name of the package.
-PACKAGE="brave-browser"
+PACKAGE="safaa-browser"
 
 # Filename of the main executable (for generating launcher scripts, etc.)
 PROGNAME=brave
 
 # Base directory for package installation.
-INSTALLDIR=/opt/brave.com/brave
+INSTALLDIR=/opt/safaa/safaa-browser
 
 # Directory for device policy enrollments.
 ENROLLMENTDIR=/etc/brave/policies/enrollment
 
 # Display string for desktop menu/icon.
-MENUNAME="Brave Web Browser"
+MENUNAME="Safaa Browser"
 
 # Brief package description.
-SHORTDESC="The web browser from Brave"
+SHORTDESC="A privacy-focused web browser"
 
 # Detailed package description.
-FULLDESC="Browse faster by blocking ads and trackers that violate your privacy and cost you time and money."
+FULLDESC="A privacy-focused, Muslim web browser with built-in background music removal (NoMusic), ad and tracker blocking (Shields), and always-on pornography and adult content blocking."
 
 # Package maintainer information.
-MAINTNAME="Brave Software"
-MAINTMAIL="support@brave.com"
-PRODUCTURL="https://brave.com/"
+MAINTNAME="Safaa Browser"
+MAINTMAIL="mohamedsadiqaguenaou@users.noreply.github.com"
+PRODUCTURL="https://safaabrowser.com/"
 
-RDN="com.brave.Browser"
+RDN="com.safaa.browser"
