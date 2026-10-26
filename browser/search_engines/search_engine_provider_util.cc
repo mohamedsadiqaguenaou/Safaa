@@ -17,6 +17,7 @@
 #include "brave/browser/search_engines/pref_names.h"
 #include "brave/components/l10n/common/locale_util.h"
 #include "brave/components/search_engines/brave_prepopulated_engines.h"
+#include "build/build_config.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/search_engines/template_url_prepopulate_data_resolver_factory.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
@@ -42,9 +43,14 @@ void SetBraveAsDefaultPrivateSearchProvider(Profile& profile) {
   auto& prefs = *profile.GetPrefs();
   auto* prepopulate_data_resolver =
       TemplateURLPrepopulateData::ResolverFactory::GetForProfile(&profile);
+  // Safaa: on Linux, private windows search with Google too, like regular
+  // windows (see GetDefaultEngine()).
+  const auto engine_id =
+      BUILDFLAG(IS_LINUX)
+          ? TemplateURLPrepopulateData::PREPOPULATED_ENGINE_ID_GOOGLE
+          : TemplateURLPrepopulateData::PREPOPULATED_ENGINE_ID_BRAVE;
   const auto template_url_data =
-      prepopulate_data_resolver->GetPrepopulatedEngine(
-          TemplateURLPrepopulateData::PREPOPULATED_ENGINE_ID_BRAVE);
+      prepopulate_data_resolver->GetPrepopulatedEngine(engine_id);
   DCHECK(template_url_data);
   prefs.SetString(prefs::kSyncedDefaultPrivateSearchProviderGUID,
                   template_url_data->sync_guid);

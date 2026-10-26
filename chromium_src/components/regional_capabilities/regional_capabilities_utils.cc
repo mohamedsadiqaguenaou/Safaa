@@ -12,6 +12,7 @@
 #include "base/containers/map_util.h"
 #include "base/containers/span.h"
 #include "brave/components/search_engines/brave_prepopulated_engines.h"
+#include "build/build_config.h"
 #include "components/prefs/pref_service.h"
 #include "components/search_engines/search_engines_pref_names.h"
 
@@ -743,6 +744,12 @@ GetPrepopulatedEngines(CountryId country_id,
 TemplateURLPrepopulateData::BravePrepopulatedEngineID GetDefaultEngine(
     CountryId country_id,
     PrefService& prefs) {
+  // Safaa: on Linux, Google is the default search engine in every country,
+  // instead of the regional default (Brave Search in most countries).
+  if (BUILDFLAG(IS_LINUX)) {
+    return TemplateURLPrepopulateData::PREPOPULATED_ENGINE_ID_GOOGLE;
+  }
+
   int version = TemplateURLPrepopulateData::kBraveCurrentDataVersion;
   if (prefs.HasPrefPath(::prefs::kBraveDefaultSearchVersion)) {
     version = prefs.GetInteger(::prefs::kBraveDefaultSearchVersion);
