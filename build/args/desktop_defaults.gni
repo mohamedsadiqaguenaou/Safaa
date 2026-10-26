@@ -8,3 +8,23 @@
 # builds for non-mobile builds (mac, linux, win)
 
 safe_browsing_mode = 1
+
+# Features removed from this browser, as on Android (android_defaults.gni):
+# Brave Wallet, Brave Rewards and Brave Ads (including sponsored images and new
+# tab takeovers), Brave News, Leo AI, Brave VPN and Web Discovery. These keep
+# their code and their UI out of the build.
+enable_brave_wallet = false
+enable_brave_rewards = false
+enable_brave_ads = false
+enable_brave_news = false
+enable_ai_chat = false
+enable_brave_vpn_v1 = false
+enable_brave_vpn_v2 = false
+enable_web_discovery_native = false
+
+# Placeholder service keys so official Release builds (is_official_build = true)
+# succeed without external Brave service keys.
+brave_services_key = "safaa"
+service_key_aichat = "safaa"
+service_key_search = "safaa"
+service_key_stt = "safaa"
