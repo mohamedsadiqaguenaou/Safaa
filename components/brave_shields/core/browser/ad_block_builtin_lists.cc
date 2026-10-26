@@ -20,10 +20,10 @@ namespace brave_shields {
 namespace {
 
 // From filter_lists/list_catalog.json of github.com/brave/adblock-resources
-// (6da9b247): the sources of the lists the catalog enables by default on
-// Android, then those of the regional lists, which Brave enables for the
-// browser's language. Columns: url, default_engine, permission_mask,
-// brave_list, langs.
+// (6da9b247): the sources of the lists the catalog enables by default (the
+// same on Android and desktop), then those of the regional lists, which Brave
+// enables for the browser's language. Columns: url, default_engine,
+// permission_mask, brave_list, langs.
 // clang-format off
 constexpr auto kBuiltInFilterLists = std::to_array<BuiltInFilterList>({
     // Brave Default Adblock Filters

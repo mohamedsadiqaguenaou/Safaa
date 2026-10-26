@@ -7,5 +7,5 @@ declare_args() {
   # Shields takes its filter lists straight from the lists' own sites and its
   # scriptlets from the app, instead of from Brave's component updater, which
   # serves only builds that carry Brave's services key.
-  brave_shields_lists_from_sources = is_android
+  brave_shields_lists_from_sources = is_android || is_linux
 }
