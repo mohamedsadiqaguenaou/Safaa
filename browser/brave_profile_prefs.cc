@@ -260,11 +260,9 @@ void OverrideDefaultPrefValues(user_prefs::PrefRegistrySyncable* registry) {
   registry->SetDefaultPrefValue(policy::policy_prefs::kHideWebStoreIcon,
                                 base::Value(true));
 
-#if BUILDFLAG(IS_ANDROID)
   // The porn blocker is always on: Google results are filtered by SafeSearch.
   registry->SetDefaultPrefValue(policy::policy_prefs::kForceGoogleSafeSearch,
                                 base::Value(true));
-#endif
 
   // Do not mark Password Manager app menu item as new
   registry->SetDefaultPrefValue(

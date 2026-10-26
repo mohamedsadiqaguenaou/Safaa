@@ -157,7 +157,6 @@ std::vector<net::IPEndPoint> MaybeOverrideFallbackDohNameservers(
                                           FALLBACK_DOH_NAMESERVERS))
 #endif  // BUILDFLAG(IS_WIN) && BUILDFLAG(ENABLE_BRAVE_VPN)
 
-#if BUILDFLAG(IS_ANDROID)
 namespace {
 
 // Family-filter resolvers, which refuse to resolve adult sites. Both filter, so
@@ -191,14 +190,11 @@ class PornBlockerDohConfigSource : public DefaultDnsOverHttpsConfigSource {
 }  // namespace
 
 #define DefaultDnsOverHttpsConfigSource PornBlockerDohConfigSource
-#endif  // BUILDFLAG(IS_ANDROID)
 
 #define StubResolverConfigReader StubResolverConfigReader_ChromiumImpl
 #include <chrome/browser/net/stub_resolver_config_reader.cc>
 #undef StubResolverConfigReader
-#if BUILDFLAG(IS_ANDROID)
 #undef DefaultDnsOverHttpsConfigSource
-#endif  // BUILDFLAG(IS_ANDROID)
 #if BUILDFLAG(IS_WIN) && BUILDFLAG(ENABLE_BRAVE_VPN)
 #undef ConfigureStubHostResolver
 #undef SecureDnsConfig
