@@ -484,11 +484,12 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   brave_adaptive_captcha::BraveAdaptiveCaptchaService::RegisterProfilePrefs(
       registry);
 
+  registry->RegisterBooleanPref(kNoMusicEnabled, true);
+
 #if BUILDFLAG(IS_ANDROID)
   registry->RegisterBooleanPref(kDesktopModeEnabled, false);
   registry->RegisterBooleanPref(kPlayYTVideoInBrowserEnabled, true);
   registry->RegisterBooleanPref(kBackgroundVideoPlaybackEnabled, true);
-  registry->RegisterBooleanPref(kNoMusicEnabled, true);
   registry->RegisterBooleanPref(kSafetynetCheckFailed, false);
   registry->RegisterStringPref(kSafetynetStatus, "");
 #endif

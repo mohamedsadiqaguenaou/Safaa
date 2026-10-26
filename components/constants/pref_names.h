@@ -109,14 +109,15 @@ inline constexpr char kDontAskForCrashReporting[] =
 inline constexpr char kEnableMediaRouterOnRestart[] =
     "brave.enable_media_router_on_restart";
 
+// Whether NoMusic removes background music from media on web pages.
+inline constexpr char kNoMusicEnabled[] = "brave.nomusic.enabled";
+
 #if BUILDFLAG(IS_ANDROID)
 inline constexpr char kDesktopModeEnabled[] = "brave.desktop_mode_enabled";
 inline constexpr char kPlayYTVideoInBrowserEnabled[] =
     "brave.play_yt_video_in_browser_enabled";
 inline constexpr char kBackgroundVideoPlaybackEnabled[] =
     "brave.background_video_playback";
-// Whether NoMusic removes background music from media on web pages.
-inline constexpr char kNoMusicEnabled[] = "brave.nomusic.enabled";
 inline constexpr char kSafetynetCheckFailed[] = "safetynetcheck.failed";
 inline constexpr char kSafetynetStatus[] = "safetynet.status";
 // Google Ads click id from the Play Store install referrer.

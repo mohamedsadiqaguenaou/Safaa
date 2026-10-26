@@ -145,6 +145,7 @@ brave_chrome_browser_deps = [
   "//brave/browser/misc_metrics",
   "//brave/browser/misc_metrics:misc_metrics_impl",
   "//brave/browser/net:features",
+  "//brave/browser/nomusic",
   "//brave/browser/ntp_background",
   "//brave/browser/policy/handlers",
   "//brave/browser/serp_metrics",
@@ -632,7 +633,6 @@ if (is_android) {
   brave_chrome_browser_deps += [
     "//brave/browser/android:android_browser_process",
     "//brave/browser/android:tabs_impl",
-    "//brave/browser/android/nomusic",
     "//brave/browser/android/preferences",
     "//brave/browser/android/safe_browsing:buildflags",
     "//brave/browser/android/youtube_script_injector",

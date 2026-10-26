@@ -3,8 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#ifndef BRAVE_BROWSER_ANDROID_NOMUSIC_NOMUSIC_TAB_HELPER_H_
-#define BRAVE_BROWSER_ANDROID_NOMUSIC_NOMUSIC_TAB_HELPER_H_
+#ifndef BRAVE_BROWSER_NOMUSIC_NOMUSIC_TAB_HELPER_H_
+#define BRAVE_BROWSER_NOMUSIC_NOMUSIC_TAB_HELPER_H_
 
 #include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/web_contents_observer.h"
@@ -53,4 +53,4 @@ class NoMusicTabHelper : public content::WebContentsObserver,
 
 }  // namespace nomusic
 
-#endif  // BRAVE_BROWSER_ANDROID_NOMUSIC_NOMUSIC_TAB_HELPER_H_
+#endif  // BRAVE_BROWSER_NOMUSIC_NOMUSIC_TAB_HELPER_H_

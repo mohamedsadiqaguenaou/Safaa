@@ -604,6 +604,17 @@ Or change later at <ph name="SETTINGS_EXTENIONS_LINK">$2<ex>brave://settings/ext
         Leo AI
       </message>
 
+      <!-- NoMusic toolbar button strings -->
+      <message name="IDS_ACCNAME_NOMUSIC_BUTTON" desc="Accessible name of the toolbar button that turns NoMusic on or off. NoMusic removes background music from videos and keeps the voices.">
+        Turn NoMusic on or off
+      </message>
+      <message name="IDS_TOOLTIP_NOMUSIC_BUTTON_ON" desc="Tooltip of the NoMusic toolbar button while NoMusic is on. NoMusic removes background music from videos and keeps the voices.">
+        NoMusic is on. Background music is removed from videos.
+      </message>
+      <message name="IDS_TOOLTIP_NOMUSIC_BUTTON_OFF" desc="Tooltip of the NoMusic toolbar button while NoMusic is off. NoMusic removes background music from videos and keeps the voices.">
+        NoMusic is off
+      </message>
+
       <!-- Screenshot feature strings -->
       <message name="IDS_BRAVE_SCREENSHOT_TOOLBAR_BUTTON_TOOLTIP" desc="Tooltip for the screenshot toolbar button">
         Take a screenshot

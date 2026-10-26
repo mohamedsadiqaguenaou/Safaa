@@ -29,6 +29,7 @@
 #include "brave/browser/ui/views/location_bar/brave_location_bar_view.h"
 #include "brave/browser/ui/views/tabs/vertical_tab_utils.h"
 #include "brave/browser/ui/views/toolbar/bookmark_button.h"
+#include "brave/browser/ui/views/toolbar/nomusic_button.h"
 #include "brave/browser/ui/views/toolbar/side_panel_button.h"
 #include "brave/browser/ui/views/workspaces/workspaces_bubble_controller.h"
 #include "brave/browser/workspaces/features.h"
@@ -427,6 +428,13 @@ void BraveToolbarView::Init() {
                             base::Unretained(this)));
     screenshot_button_->SetVisible(show_screenshot_button_.GetValue());
   }
+
+  // NoMusic is one switch for regular and private windows.
+  PrefService* original_prefs = profile->GetOriginalProfile()->GetPrefs();
+  nomusic_button_ =
+      AddChildViewAt(std::make_unique<NoMusicButton>(original_prefs),
+                     *GetIndexOf(app_menu_button_) - 1);
+  SetBraveButtonFlexBehavior(nomusic_button_);
 
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
   if (brave_vpn::BraveVpnServiceFactory::GetForProfile(profile)) {

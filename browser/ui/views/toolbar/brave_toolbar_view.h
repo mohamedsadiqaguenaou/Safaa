@@ -26,6 +26,7 @@ class BraveVPNButton;
 
 class BraveBookmarkButton;
 class BrowserWindowInterface;
+class NoMusicButton;
 class ScreenshotButton;
 class SidePanelButton;
 class TabStripComboButton;
@@ -46,6 +47,7 @@ class BraveToolbarView : public ToolbarView,
   WalletButton* wallet_button() const { return wallet_; }
   SidePanelButton* side_panel_button() const { return side_panel_; }
   ScreenshotButton* screenshot_button() const { return screenshot_button_; }
+  NoMusicButton* nomusic_button() const { return nomusic_button_; }
   ToolbarButton* vertical_tab_toggle_button() const {
     return vertical_tab_toggle_;
   }
@@ -135,6 +137,8 @@ class BraveToolbarView : public ToolbarView,
 
   raw_ptr<ScreenshotButton> screenshot_button_ = nullptr;
   BooleanPrefMember show_screenshot_button_;
+
+  raw_ptr<NoMusicButton> nomusic_button_ = nullptr;
 
   BooleanPrefMember show_wallet_button_;
   BooleanPrefMember wallet_disabled_by_policy_;

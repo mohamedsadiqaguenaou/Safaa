@@ -1,0 +1,47 @@
+// Copyright (c) 2026 The Brave Authors. All rights reserved.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this file,
+// You can obtain one at https://mozilla.org/MPL/2.0/.
+
+// NoMusic is on: the NoMusic logo, a pink beamed note struck through. The
+// strike takes the color of the other toolbar icons. Same shapes as Android's
+// ic_brave_nomusic_on.
+
+CANVAS_DIMENSIONS, 24,
+// Beam and stems.
+PATH_COLOR_ARGB, 0xFF, 0xFF, 0x66, 0xB3,
+MOVE_TO, 8.7f, 5.6f,
+LINE_TO, 20.4f, 2.2f,
+LINE_TO, 20.4f, 16.2f,
+LINE_TO, 19.6f, 16.2f,
+LINE_TO, 19.6f, 6.4f,
+LINE_TO, 9.5f, 9.4f,
+LINE_TO, 9.5f, 19.3f,
+LINE_TO, 8.7f, 19.3f,
+CLOSE,
+// Note heads: 3 x 2.15 ellipses tilted by -20 degrees.
+NEW_PATH,
+PATH_COLOR_ARGB, 0xFF, 0xFF, 0x66, 0xB3,
+FILL_RULE_NONZERO,
+MOVE_TO, 3.4809f, 20.8261f,
+ARC_TO, 3, 2.15f, -20, 1, 0, 9.1191f, 18.7739f,
+ARC_TO, 3, 2.15f, -20, 1, 0, 3.4809f, 20.8261f,
+CLOSE,
+NEW_PATH,
+PATH_COLOR_ARGB, 0xFF, 0xFF, 0x66, 0xB3,
+FILL_RULE_NONZERO,
+MOVE_TO, 14.4809f, 17.7261f,
+ARC_TO, 3, 2.15f, -20, 1, 0, 20.1191f, 15.6739f,
+ARC_TO, 3, 2.15f, -20, 1, 0, 14.4809f, 17.7261f,
+CLOSE,
+// A gap around the strike keeps it apart from the note.
+NEW_PATH,
+PATH_MODE_CLEAR,
+STROKE, 3,
+MOVE_TO, 2.6f, 21.6f,
+LINE_TO, 21.6f, 1.9f,
+// The strike.
+NEW_PATH,
+STROKE, 1.5f,
+MOVE_TO, 2.6f, 21.6f,
+LINE_TO, 21.6f, 1.9f

@@ -139,7 +139,7 @@ repack("resources") {
     sources += [ "$root_gen_dir/brave/components/brave_shields/resources/adblock_resources/adblock_resources.pak" ]
   }
 
-  if (is_android) {
+  if (!is_ios) {
     deps += [ "//brave/components/nomusic/resources" ]
     sources += [
       "$root_gen_dir/brave/components/nomusic/resources/nomusic_resources.pak",

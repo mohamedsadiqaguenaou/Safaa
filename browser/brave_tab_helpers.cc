@@ -18,6 +18,7 @@
 #include "brave/browser/brave_shields/brave_shields_web_contents_observer.h"
 #include "brave/browser/ephemeral_storage/ephemeral_storage_service_factory.h"
 #include "brave/browser/ephemeral_storage/ephemeral_storage_tab_helper.h"
+#include "brave/browser/nomusic/nomusic_tab_helper.h"
 #include "brave/browser/serp_metrics/serp_metrics_tab_helper.h"
 #include "brave/components/ai_chat/core/common/buildflags/buildflags.h"
 #include "brave/components/brave_ads/buildflags/buildflags.h"
@@ -67,7 +68,6 @@
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
-#include "brave/browser/android/nomusic/nomusic_tab_helper.h"
 #include "brave/browser/android/youtube_script_injector/youtube_script_injector_tab_helper.h"
 #endif
 
@@ -126,12 +126,13 @@ void AttachTabHelpers(content::WebContents* web_contents) {
 
 #if BUILDFLAG(IS_ANDROID)
   YouTubeScriptInjectorTabHelper::CreateForWebContents(web_contents);
-  nomusic::NoMusicTabHelper::CreateForWebContents(web_contents);
 #else
   // Add tab helpers here unless they are intended for android too
   brave_shields::BraveShieldsTabHelper::CreateForWebContents(web_contents);
   BraveGeolocationPermissionTabHelper::CreateForWebContents(web_contents);
 #endif
+
+  nomusic::NoMusicTabHelper::CreateForWebContents(web_contents);
 
 #if BUILDFLAG(ENABLE_BRAVE_REWARDS)
   brave_rewards::RewardsTabHelper::CreateForWebContents(web_contents);

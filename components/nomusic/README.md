@@ -1,4 +1,4 @@
-# NoMusic (Android)
+# NoMusic
 
 NoMusic removes background music from videos on web pages and keeps the
 voices. It is a port of the [NoMusic](https://github.com/mohamedsadiqaguenaou/NoMusic)
@@ -7,13 +7,14 @@ browser extension and runs the same pipeline: the FastEnhancer-T model
 (`resources/rnnoise.wasm`). Both modules are copied verbatim from the
 extension; the Standard (FastEnhancer-S) model is not shipped.
 
-The toolbar button next to Brave Shields switches the `brave.nomusic.enabled`
+The NoMusic toolbar button (next to Brave Shields on Android) and, on desktop,
+the NoMusic switch in Settings > Content switch the `brave.nomusic.enabled`
 profile pref (`kNoMusicEnabled`). The switch is shared by regular and private
 tabs and is off by default.
 
 ## How it works
 
-1. `NoMusicTabHelper` (`brave/browser/android/nomusic/`) observes the pref.
+1. `NoMusicTabHelper` (`brave/browser/nomusic/`) observes the pref.
    While it is on, every http(s) frame of the tab gets a small watcher script
    in Brave's internal isolated world through the `script_injector` mojo
    interface.
