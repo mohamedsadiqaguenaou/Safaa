@@ -13,7 +13,7 @@ if (is_brave_origin_branded) {
   _pyramid_source = "assets/pyramid_origin.webp"
   _sky_source = "assets/sky_origin.webp"
 } else {
-  _welcome_logo_source = "assets/brave_logo_3d@2x.webp"
+  _welcome_logo_source = "assets/safaa_logo@2x.webp"
   _background_source = "assets/background@2x.webp"
   _hill_source = "assets/hill.webp"
   _pyramid_source = "assets/pyramid.webp"
