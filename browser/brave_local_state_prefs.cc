@@ -209,12 +209,10 @@ void RegisterLocalStatePrefs(PrefRegistrySimple* registry) {
                                  false);
 #endif  // !BUILDFLAG(IS_ANDROID)
 
-#if BUILDFLAG(IS_ANDROID)
   // This browser sends no usage pings or product insights (P3A) unless the
   // user turns them on.
   registry->SetDefaultPrefValue(kStatsReportingEnabled, base::Value(false));
   registry->SetDefaultPrefValue(p3a::kP3AEnabled, base::Value(false));
-#endif  // BUILDFLAG(IS_ANDROID)
 
   brave_shields::RegisterShieldsP3ALocalPrefs(registry);
 #if !BUILDFLAG(IS_ANDROID)

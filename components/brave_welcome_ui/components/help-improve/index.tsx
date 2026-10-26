@@ -65,7 +65,8 @@ function HelpImprove() {
   // <else>
   const [isMetricsReportingEnabled, setMetricsReportingEnabled] = React.useState(true)
   // </if>
-  const [isP3AEnabled, setP3AEnabled] = React.useState(true)
+  // Product insights (P3A) stay off unless the user turns them on.
+  const [isP3AEnabled, setP3AEnabled] = React.useState(false)
   const [completeURLPromise] = React.useState(() => {
     return WelcomeBrowserProxyImpl.getInstance().getWelcomeCompleteURL()
   })

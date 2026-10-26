@@ -29,7 +29,8 @@ export function MetricsStep(props: StepComponentProps) {
   useStepTransition()
 
   const [webDiscoveryEnabled, setWebDiscoveryEnabled] = React.useState(false)
-  const [p3aEnabled, setP3AEnabled] = React.useState(true)
+  // Product insights (P3A) stay off unless the user turns them on.
+  const [p3aEnabled, setP3AEnabled] = React.useState(false)
   const [crashReportingEnabled, setCrashReportingEnabled] = React.useState(true)
 
   function saveAndContinue() {
